@@ -1,0 +1,3 @@
+[workspace]
+members = [ "asm", "dis","lib/cryptic_derive", "lib/cryptic", "vm"]
+resolver = "2"
