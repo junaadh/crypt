@@ -1,70 +1,149 @@
-use std::str::FromStr;
+#[macro_export]
+macro_rules! impl_try_from_str {
+    (
+        $(#[$attr: meta])*
+        #[.error = $error_ty: ty, $err_variant: ident]
+        $vis: vis enum $name: ident {
+            $(
+                #[$($str: expr),*]
+                $variant: ident = $value: expr,
+            )*
+        }
+    ) => {
+        $(#[$attr])*
+        $vis enum $name {
+            $(
+                $variant = $value,
+            )*
+        }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-#[repr(u8)]
-pub enum Register {
-    RZR, // R0
-    R1,
-    R2,
-    R3,
-    R4,
-    R5,
-    R6,
-    R7,
-    R8,
-    R9,
-    R10,
-    R11,
-    R12,
-    SP,   // R!#
-    LR,   // R14
-    PC,   // R15
-    CPSR, // Flags
+        impl std::convert::TryFrom<u8> for $name {
+            type Error = $error_ty;
+
+            fn try_from(value: u8) -> Result<Self, Self::Error> {
+                match value {
+                    $(
+                        $value => Ok(Self::$variant),
+                    )*
+                    _ => Err(<$error_ty>::$err_variant(Box::new(value))),
+                }
+            }
+        }
+
+        impl std::convert::TryFrom<u16> for $name {
+            type Error = $error_ty;
+
+            fn try_from(value: u16) -> Result<Self, Self::Error> {
+                ((value & 0xff) as u8).try_into()
+            }
+        }
+
+        impl std::str::FromStr for $name {
+            type Err = $error_ty;
+
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                match s {
+                    $(
+                        $($str)|* => Ok(Self::$variant),
+                    )*
+                    _ => Err(<$error_ty>::$err_variant(Box::new(s.to_string()))),
+                }
+            }
+        }
+    };
 }
 
-impl TryFrom<u8> for Register {
-    type Error = super::vm::VmError;
-
-    fn try_from(value: u8) -> Result<Self, Self::Error> {
-        Ok(match value {
-            0 => Register::RZR,
-            1 => Register::R1,
-            2 => Register::R2,
-            3 => Register::R3,
-            4 => Register::R4,
-            5 => Register::R5,
-            6 => Register::R6,
-            7 => Register::R7,
-            8 => Register::R8,
-            9 => Register::R9,
-            10 => Register::R10,
-            11 => Register::R11,
-            12 => Register::R12,
-            13 => Register::SP,
-            14 => Register::LR,
-            15 => Register::PC,
-            16 => Register::CPSR,
-            _ => return Err(super::vm::VmError::InvalidRegisterNo(value)),
-        })
+impl_try_from_str! (
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+    #[repr(u8)]
+    #[.error = super::vm::VmError, InvalidRegister]
+    pub enum Register {
+        #["rzr", "RZR"]
+        RZR = 0, // R0
+        #["r1", "R1"]
+        R1 = 1,
+        #["r2", "R2"]
+        R2 = 2,
+        #["r3", "R3"]
+        R3 = 3,
+        #["r4", "R4"]
+        R4 = 4,
+        #["r5", "R5"]
+        R5 = 5,
+        #["r6", "R6"]
+        R6 = 6,
+        #["r7", "R7"]
+        R7 = 7,
+        #["r8", "R8"]
+        R8 = 8,
+        #["r9", "R9"]
+        R9 = 9,
+        #["r10", "R10"]
+        R10 = 10,
+        #["r11", "R11"]
+        R11 = 11,
+        #["r12", "R12"]
+        R12 = 12,
+        #["r13", "R13"]
+        SP = 13,   // R!#
+        #["r14", "R14"]
+        LR = 14,   // R14
+        #["r15", "R15"]
+        PC = 15,   // R15
+        #["r16", "R16"]
+        CPSR = 16, // Flags
     }
-}
+);
 
-impl TryFrom<u16> for Register {
-    type Error = super::vm::VmError;
+#[cfg(test)]
+mod test {
+    use super::*;
 
-    fn try_from(value: u16) -> Result<Self, Self::Error> {
-        ((value & 0xff) as u8).try_into()
+    #[test]
+    fn reg_one() -> crate::Res<()> {
+        let reg = Register::RZR;
+        let test: Register = 0_u8.try_into()?;
+        assert_eq!(reg, test);
+        Ok(())
     }
-}
 
-impl FromStr for Register {
-    type Err = super::vm::VmError;
+    #[test]
+    fn reg_two() -> crate::Res<()> {
+        let reg = Register::RZR;
+        let test: Register = 0_u16.try_into()?;
+        assert_eq!(reg, test);
+        Ok(())
+    }
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(match s {
-            "r0" | "R0" => Register::RZR,
-            // cannot do this gonna make a macro
-            _ => todo!(),
-        })
+    #[test]
+    fn reg_three() -> crate::Res<()> {
+        let reg = Register::RZR;
+        let test: Register = "rzr".parse()?;
+        assert_eq!(reg, test);
+        Ok(())
+    }
+
+    #[test]
+    fn reg_four() -> crate::Res<()> {
+        let reg = Register::RZR;
+        let test = "RZR".parse::<Register>()?;
+        assert_eq!(reg, test);
+        Ok(())
+    }
+
+    #[test]
+    fn reg_five() -> crate::Res<()> {
+        let reg = Register::RZR;
+        let test = Register::try_from(0_u8)?;
+        assert_eq!(reg, test);
+        Ok(())
+    }
+
+    #[test]
+    fn reg_six() -> crate::Res<()> {
+        let reg = Register::RZR;
+        let test = Register::try_from(0_u16)?;
+        assert_eq!(reg, test);
+        Ok(())
     }
 }

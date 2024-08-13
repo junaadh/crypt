@@ -1,4 +1,5 @@
 extern crate proc_macro;
+
 use cryptic_error::impl_cryptee;
 use proc_macro::TokenStream;
 
