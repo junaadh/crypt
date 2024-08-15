@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[macro_export]
 macro_rules! impl_try_from_str {
     (
@@ -58,7 +60,7 @@ impl_try_from_str! (
     #[repr(u8)]
     #[.error = super::vm::VmError, InvalidRegister]
     pub enum Register {
-        #["rzr", "RZR"]
+        #["rzr", "RZR", "r0", "R0"]
         RZR = 0, // R0
         #["r1", "R1"]
         R1 = 1,
@@ -94,6 +96,30 @@ impl_try_from_str! (
         CPSR = 16, // Flags
     }
 );
+
+impl fmt::Display for Register {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::RZR => write!(f, "rzr"),
+            Self::R1 => write!(f, "r1"),
+            Self::R2 => write!(f, "r2"),
+            Self::R3 => write!(f, "r3"),
+            Self::R4 => write!(f, "r4"),
+            Self::R5 => write!(f, "r5"),
+            Self::R6 => write!(f, "r6"),
+            Self::R7 => write!(f, "r7"),
+            Self::R8 => write!(f, "r8"),
+            Self::R9 => write!(f, "r9"),
+            Self::R10 => write!(f, "r10"),
+            Self::R11 => write!(f, "r11"),
+            Self::R12 => write!(f, "r12"),
+            Self::SP => write!(f, "sp"),
+            Self::LR => write!(f, "lr"),
+            Self::PC => write!(f, "pc"),
+            Self::CPSR => write!(f, "cpsr"),
+        }
+    }
+}
 
 #[cfg(test)]
 mod test {

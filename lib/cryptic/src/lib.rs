@@ -1,5 +1,7 @@
+pub mod asm;
 pub mod error;
 pub mod mem;
+pub mod op;
 pub mod register;
 pub mod vm;
 
