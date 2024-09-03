@@ -1,7 +1,12 @@
+#![feature(decl_macro)]
+
 pub mod asm;
 pub mod error;
+pub mod flags;
+pub mod interrupts;
 pub mod mem;
 pub mod op;
+pub mod parse;
 pub mod register;
 pub mod vm;
 

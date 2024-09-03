@@ -8,4 +8,6 @@ pub enum VmError {
     Interrupt,
     ///invalid register: {}
     InvalidRegister(Box<dyn Display + 'static>),
+    /// Unable to parse token: {}
+    ParseErr(Box<dyn Display + 'static>),
 }

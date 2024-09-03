@@ -1,5 +1,7 @@
 use std::fmt;
 
+pub const REGISTER_NO: usize = 17;
+
 #[macro_export]
 macro_rules! impl_try_from_str {
     (
@@ -61,7 +63,7 @@ impl_try_from_str! (
     #[.error = super::vm::VmError, InvalidRegister]
     pub enum Register {
         #["rzr", "RZR", "r0", "R0"]
-        RZR = 0, // R0
+        R0 = 0, // R0
         #["r1", "R1"]
         R1 = 1,
         #["r2", "R2"]
@@ -100,7 +102,7 @@ impl_try_from_str! (
 impl fmt::Display for Register {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::RZR => write!(f, "rzr"),
+            Self::R0 => write!(f, "rzr"),
             Self::R1 => write!(f, "r1"),
             Self::R2 => write!(f, "r2"),
             Self::R3 => write!(f, "r3"),
@@ -127,7 +129,7 @@ mod test {
 
     #[test]
     fn reg_one() -> crate::Res<()> {
-        let reg = Register::RZR;
+        let reg = Register::R0;
         let test: Register = 0_u8.try_into()?;
         assert_eq!(reg, test);
         Ok(())
@@ -135,7 +137,7 @@ mod test {
 
     #[test]
     fn reg_two() -> crate::Res<()> {
-        let reg = Register::RZR;
+        let reg = Register::R0;
         let test: Register = 0_u16.try_into()?;
         assert_eq!(reg, test);
         Ok(())
@@ -143,7 +145,7 @@ mod test {
 
     #[test]
     fn reg_three() -> crate::Res<()> {
-        let reg = Register::RZR;
+        let reg = Register::R0;
         let test: Register = "rzr".parse()?;
         assert_eq!(reg, test);
         Ok(())
@@ -151,15 +153,15 @@ mod test {
 
     #[test]
     fn reg_four() -> crate::Res<()> {
-        let reg = Register::RZR;
-        let test = "RZR".parse::<Register>()?;
+        let reg = Register::R0;
+        let test = "R0".parse::<Register>()?;
         assert_eq!(reg, test);
         Ok(())
     }
 
     #[test]
     fn reg_five() -> crate::Res<()> {
-        let reg = Register::RZR;
+        let reg = Register::R0;
         let test = Register::try_from(0_u8)?;
         assert_eq!(reg, test);
         Ok(())
@@ -167,7 +169,7 @@ mod test {
 
     #[test]
     fn reg_six() -> crate::Res<()> {
-        let reg = Register::RZR;
+        let reg = Register::R0;
         let test = Register::try_from(0_u16)?;
         assert_eq!(reg, test);
         Ok(())

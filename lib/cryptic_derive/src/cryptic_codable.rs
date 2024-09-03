@@ -18,6 +18,8 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
     let mut code_fnum = Vec::new();
     let mut code_fstr = Vec::new();
 
+    let mut op_display = Vec::new();
+
     for variant in data.variants {
         let variant_name = &variant.ident;
 
@@ -56,11 +58,19 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
             #mnumonic => Ok(Code::#variant_name),
         });
 
-        if types.is_empty() {
-            todo!()
-        }
         match types.iter().map(|x| x.as_str()).collect::<Vec<_>>()[..] {
-            ["u8"] => todo!(),
+            [] => op_display.push(quote! {
+                Self::#variant_name => write!(f, "{}", mnumonic),
+            }),
+            ["u8"] => op_display.push(quote! {
+                Self::#variant_name(x) => write!(f, "{} {}\t; {:02x}", #mnumonic, x, x),
+            }),
+            ["Register"] => op_display.push(quote! {
+                Self::#variant_name(r) => write!(f, "{} {r}", #mnumonic),
+            }),
+            ["Register", "Operand"] => op_display.push(quote! {
+               Self::#variant_name(r, o) => write!(f, "{} {r}, {o}", #mnumonic),
+            }),
             _ => panic!("Dunno how to handle these types"),
         }
     }

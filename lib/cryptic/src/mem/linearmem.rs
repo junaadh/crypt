@@ -12,7 +12,7 @@ impl LinearMem {
 }
 
 impl super::Addressable for LinearMem {
-    fn write_u8(&mut self, addr: u16, byte: u8) -> super::Res<()> {
+    fn write_u8(&mut self, addr: u32, byte: u8) -> super::Res<()> {
         let addrv = addr as usize;
         if addrv > self.region.len() {
             return Err(super::MemError::OutOfBounds(addr));
@@ -22,7 +22,7 @@ impl super::Addressable for LinearMem {
         Ok(())
     }
 
-    fn read_u8(&self, offset: u16) -> super::Res<u8> {
+    fn read_u8(&self, offset: u32) -> super::Res<u8> {
         self.region
             .get(offset as usize)
             .copied()

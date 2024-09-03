@@ -1,4 +1,6 @@
-use std::fmt;
+use std::{fmt, num::ParseIntError};
+
+use crate::vm::VmError;
 
 pub enum Cryperror {
     Mem(super::mem::MemError),
@@ -21,6 +23,12 @@ impl From<super::vm::VmError> for Cryperror {
 impl From<super::asm::AsmError> for Cryperror {
     fn from(value: super::asm::AsmError) -> Self {
         Self::Asm(value)
+    }
+}
+
+impl From<ParseIntError> for Cryperror {
+    fn from(value: ParseIntError) -> Self {
+        Self::VM(VmError::ParseErr(Box::new(value)))
     }
 }
 
