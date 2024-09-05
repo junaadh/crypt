@@ -1,3 +1,6 @@
-[workspace]
-members = [ "asm", "dis","lib/cryptic_derive", "lib/cryptic", "vm"]
-resolver = "2"
+[package]
+name = "esiux"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
