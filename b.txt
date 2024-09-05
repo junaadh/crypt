@@ -1,0 +1,1243 @@
+DeriveInput {
+    attrs: [
+        Attribute {
+            pound_token: Pound,
+            style: AttrStyle::Outer,
+            bracket_token: Bracket,
+            meta: Meta::List {
+                path: Path {
+                    leading_colon: None,
+                    segments: [
+                        PathSegment {
+                            ident: Ident {
+                                ident: "error",
+                                span: #0 bytes(2040..2045),
+                            },
+                            arguments: PathArguments::None,
+                        },
+                    ],
+                },
+                delimiter: MacroDelimiter::Paren(
+                    Paren,
+                ),
+                tokens: TokenStream [
+                    Ident {
+                        ident: "crate",
+                        span: #0 bytes(2046..2051),
+                    },
+                    Punct {
+                        ch: ':',
+                        spacing: Joint,
+                        span: #0 bytes(2051..2052),
+                    },
+                    Punct {
+                        ch: ':',
+                        spacing: Alone,
+                        span: #0 bytes(2052..2053),
+                    },
+                    Ident {
+                        ident: "error",
+                        span: #0 bytes(2053..2058),
+                    },
+                    Punct {
+                        ch: ':',
+                        spacing: Joint,
+                        span: #0 bytes(2058..2059),
+                    },
+                    Punct {
+                        ch: ':',
+                        spacing: Alone,
+                        span: #0 bytes(2059..2060),
+                    },
+                    Ident {
+                        ident: "EsiuxError",
+                        span: #0 bytes(2060..2070),
+                    },
+                ],
+            },
+        },
+    ],
+    vis: Visibility::Public(
+        Pub,
+    ),
+    ident: Ident {
+        ident: "Register",
+        span: #0 bytes(2082..2090),
+    },
+    generics: Generics {
+        lt_token: None,
+        params: [],
+        gt_token: None,
+        where_clause: None,
+    },
+    data: Data::Enum {
+        enum_token: Enum,
+        brace_token: Brace,
+        variants: [
+            Variant {
+                attrs: [
+                    Attribute {
+                        pound_token: Pound,
+                        style: AttrStyle::Outer,
+                        bracket_token: Bracket,
+                        meta: Meta::List {
+                            path: Path {
+                                leading_colon: None,
+                                segments: [
+                                    PathSegment {
+                                        ident: Ident {
+                                            ident: "code",
+                                            span: #0 bytes(2099..2103),
+                                        },
+                                        arguments: PathArguments::None,
+                                    },
+                                ],
+                            },
+                            delimiter: MacroDelimiter::Paren(
+                                Paren,
+                            ),
+                            tokens: TokenStream [
+                                Literal {
+                                    kind: Str,
+                                    symbol: "rzr",
+                                    suffix: None,
+                                    span: #0 bytes(2104..2109),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2109..2110),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "RZR",
+                                    suffix: None,
+                                    span: #0 bytes(2111..2116),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2116..2117),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "r0",
+                                    suffix: None,
+                                    span: #0 bytes(2118..2122),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2122..2123),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "R0",
+                                    suffix: None,
+                                    span: #0 bytes(2124..2128),
+                                },
+                            ],
+                        },
+                    },
+                ],
+                ident: Ident {
+                    ident: "R0",
+                    span: #0 bytes(2135..2137),
+                },
+                fields: Fields::Unit,
+                discriminant: Some(
+                    (
+                        Eq,
+                        Expr::Lit {
+                            attrs: [],
+                            lit: Lit::Int {
+                                token: 0,
+                            },
+                        },
+                    ),
+                ),
+            },
+            Comma,
+            Variant {
+                attrs: [
+                    Attribute {
+                        pound_token: Pound,
+                        style: AttrStyle::Outer,
+                        bracket_token: Bracket,
+                        meta: Meta::List {
+                            path: Path {
+                                leading_colon: None,
+                                segments: [
+                                    PathSegment {
+                                        ident: Ident {
+                                            ident: "code",
+                                            span: #0 bytes(2155..2159),
+                                        },
+                                        arguments: PathArguments::None,
+                                    },
+                                ],
+                            },
+                            delimiter: MacroDelimiter::Paren(
+                                Paren,
+                            ),
+                            tokens: TokenStream [
+                                Literal {
+                                    kind: Str,
+                                    symbol: "r1",
+                                    suffix: None,
+                                    span: #0 bytes(2160..2164),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2164..2165),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "R1",
+                                    suffix: None,
+                                    span: #0 bytes(2166..2170),
+                                },
+                            ],
+                        },
+                    },
+                ],
+                ident: Ident {
+                    ident: "R1",
+                    span: #0 bytes(2177..2179),
+                },
+                fields: Fields::Unit,
+                discriminant: Some(
+                    (
+                        Eq,
+                        Expr::Lit {
+                            attrs: [],
+                            lit: Lit::Int {
+                                token: 1,
+                            },
+                        },
+                    ),
+                ),
+            },
+            Comma,
+            Variant {
+                attrs: [
+                    Attribute {
+                        pound_token: Pound,
+                        style: AttrStyle::Outer,
+                        bracket_token: Bracket,
+                        meta: Meta::List {
+                            path: Path {
+                                leading_colon: None,
+                                segments: [
+                                    PathSegment {
+                                        ident: Ident {
+                                            ident: "code",
+                                            span: #0 bytes(2191..2195),
+                                        },
+                                        arguments: PathArguments::None,
+                                    },
+                                ],
+                            },
+                            delimiter: MacroDelimiter::Paren(
+                                Paren,
+                            ),
+                            tokens: TokenStream [
+                                Literal {
+                                    kind: Str,
+                                    symbol: "r2",
+                                    suffix: None,
+                                    span: #0 bytes(2196..2200),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2200..2201),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "R2",
+                                    suffix: None,
+                                    span: #0 bytes(2202..2206),
+                                },
+                            ],
+                        },
+                    },
+                ],
+                ident: Ident {
+                    ident: "R2",
+                    span: #0 bytes(2213..2215),
+                },
+                fields: Fields::Unit,
+                discriminant: Some(
+                    (
+                        Eq,
+                        Expr::Lit {
+                            attrs: [],
+                            lit: Lit::Int {
+                                token: 2,
+                            },
+                        },
+                    ),
+                ),
+            },
+            Comma,
+            Variant {
+                attrs: [
+                    Attribute {
+                        pound_token: Pound,
+                        style: AttrStyle::Outer,
+                        bracket_token: Bracket,
+                        meta: Meta::List {
+                            path: Path {
+                                leading_colon: None,
+                                segments: [
+                                    PathSegment {
+                                        ident: Ident {
+                                            ident: "code",
+                                            span: #0 bytes(2227..2231),
+                                        },
+                                        arguments: PathArguments::None,
+                                    },
+                                ],
+                            },
+                            delimiter: MacroDelimiter::Paren(
+                                Paren,
+                            ),
+                            tokens: TokenStream [
+                                Literal {
+                                    kind: Str,
+                                    symbol: "r3",
+                                    suffix: None,
+                                    span: #0 bytes(2232..2236),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2236..2237),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "R3",
+                                    suffix: None,
+                                    span: #0 bytes(2238..2242),
+                                },
+                            ],
+                        },
+                    },
+                ],
+                ident: Ident {
+                    ident: "R3",
+                    span: #0 bytes(2249..2251),
+                },
+                fields: Fields::Unit,
+                discriminant: Some(
+                    (
+                        Eq,
+                        Expr::Lit {
+                            attrs: [],
+                            lit: Lit::Int {
+                                token: 3,
+                            },
+                        },
+                    ),
+                ),
+            },
+            Comma,
+            Variant {
+                attrs: [
+                    Attribute {
+                        pound_token: Pound,
+                        style: AttrStyle::Outer,
+                        bracket_token: Bracket,
+                        meta: Meta::List {
+                            path: Path {
+                                leading_colon: None,
+                                segments: [
+                                    PathSegment {
+                                        ident: Ident {
+                                            ident: "code",
+                                            span: #0 bytes(2263..2267),
+                                        },
+                                        arguments: PathArguments::None,
+                                    },
+                                ],
+                            },
+                            delimiter: MacroDelimiter::Paren(
+                                Paren,
+                            ),
+                            tokens: TokenStream [
+                                Literal {
+                                    kind: Str,
+                                    symbol: "r4",
+                                    suffix: None,
+                                    span: #0 bytes(2268..2272),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2272..2273),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "R4",
+                                    suffix: None,
+                                    span: #0 bytes(2274..2278),
+                                },
+                            ],
+                        },
+                    },
+                ],
+                ident: Ident {
+                    ident: "R4",
+                    span: #0 bytes(2285..2287),
+                },
+                fields: Fields::Unit,
+                discriminant: Some(
+                    (
+                        Eq,
+                        Expr::Lit {
+                            attrs: [],
+                            lit: Lit::Int {
+                                token: 4,
+                            },
+                        },
+                    ),
+                ),
+            },
+            Comma,
+            Variant {
+                attrs: [
+                    Attribute {
+                        pound_token: Pound,
+                        style: AttrStyle::Outer,
+                        bracket_token: Bracket,
+                        meta: Meta::List {
+                            path: Path {
+                                leading_colon: None,
+                                segments: [
+                                    PathSegment {
+                                        ident: Ident {
+                                            ident: "code",
+                                            span: #0 bytes(2299..2303),
+                                        },
+                                        arguments: PathArguments::None,
+                                    },
+                                ],
+                            },
+                            delimiter: MacroDelimiter::Paren(
+                                Paren,
+                            ),
+                            tokens: TokenStream [
+                                Literal {
+                                    kind: Str,
+                                    symbol: "r5",
+                                    suffix: None,
+                                    span: #0 bytes(2304..2308),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2308..2309),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "R5",
+                                    suffix: None,
+                                    span: #0 bytes(2310..2314),
+                                },
+                            ],
+                        },
+                    },
+                ],
+                ident: Ident {
+                    ident: "R5",
+                    span: #0 bytes(2321..2323),
+                },
+                fields: Fields::Unit,
+                discriminant: Some(
+                    (
+                        Eq,
+                        Expr::Lit {
+                            attrs: [],
+                            lit: Lit::Int {
+                                token: 5,
+                            },
+                        },
+                    ),
+                ),
+            },
+            Comma,
+            Variant {
+                attrs: [
+                    Attribute {
+                        pound_token: Pound,
+                        style: AttrStyle::Outer,
+                        bracket_token: Bracket,
+                        meta: Meta::List {
+                            path: Path {
+                                leading_colon: None,
+                                segments: [
+                                    PathSegment {
+                                        ident: Ident {
+                                            ident: "code",
+                                            span: #0 bytes(2335..2339),
+                                        },
+                                        arguments: PathArguments::None,
+                                    },
+                                ],
+                            },
+                            delimiter: MacroDelimiter::Paren(
+                                Paren,
+                            ),
+                            tokens: TokenStream [
+                                Literal {
+                                    kind: Str,
+                                    symbol: "r6",
+                                    suffix: None,
+                                    span: #0 bytes(2340..2344),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2344..2345),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "R6",
+                                    suffix: None,
+                                    span: #0 bytes(2346..2350),
+                                },
+                            ],
+                        },
+                    },
+                ],
+                ident: Ident {
+                    ident: "R6",
+                    span: #0 bytes(2357..2359),
+                },
+                fields: Fields::Unit,
+                discriminant: Some(
+                    (
+                        Eq,
+                        Expr::Lit {
+                            attrs: [],
+                            lit: Lit::Int {
+                                token: 6,
+                            },
+                        },
+                    ),
+                ),
+            },
+            Comma,
+            Variant {
+                attrs: [
+                    Attribute {
+                        pound_token: Pound,
+                        style: AttrStyle::Outer,
+                        bracket_token: Bracket,
+                        meta: Meta::List {
+                            path: Path {
+                                leading_colon: None,
+                                segments: [
+                                    PathSegment {
+                                        ident: Ident {
+                                            ident: "code",
+                                            span: #0 bytes(2371..2375),
+                                        },
+                                        arguments: PathArguments::None,
+                                    },
+                                ],
+                            },
+                            delimiter: MacroDelimiter::Paren(
+                                Paren,
+                            ),
+                            tokens: TokenStream [
+                                Literal {
+                                    kind: Str,
+                                    symbol: "r7",
+                                    suffix: None,
+                                    span: #0 bytes(2376..2380),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2380..2381),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "R7",
+                                    suffix: None,
+                                    span: #0 bytes(2382..2386),
+                                },
+                            ],
+                        },
+                    },
+                ],
+                ident: Ident {
+                    ident: "R7",
+                    span: #0 bytes(2393..2395),
+                },
+                fields: Fields::Unit,
+                discriminant: Some(
+                    (
+                        Eq,
+                        Expr::Lit {
+                            attrs: [],
+                            lit: Lit::Int {
+                                token: 7,
+                            },
+                        },
+                    ),
+                ),
+            },
+            Comma,
+            Variant {
+                attrs: [
+                    Attribute {
+                        pound_token: Pound,
+                        style: AttrStyle::Outer,
+                        bracket_token: Bracket,
+                        meta: Meta::List {
+                            path: Path {
+                                leading_colon: None,
+                                segments: [
+                                    PathSegment {
+                                        ident: Ident {
+                                            ident: "code",
+                                            span: #0 bytes(2407..2411),
+                                        },
+                                        arguments: PathArguments::None,
+                                    },
+                                ],
+                            },
+                            delimiter: MacroDelimiter::Paren(
+                                Paren,
+                            ),
+                            tokens: TokenStream [
+                                Literal {
+                                    kind: Str,
+                                    symbol: "r8",
+                                    suffix: None,
+                                    span: #0 bytes(2412..2416),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2416..2417),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "R8",
+                                    suffix: None,
+                                    span: #0 bytes(2418..2422),
+                                },
+                            ],
+                        },
+                    },
+                ],
+                ident: Ident {
+                    ident: "R8",
+                    span: #0 bytes(2429..2431),
+                },
+                fields: Fields::Unit,
+                discriminant: Some(
+                    (
+                        Eq,
+                        Expr::Lit {
+                            attrs: [],
+                            lit: Lit::Int {
+                                token: 8,
+                            },
+                        },
+                    ),
+                ),
+            },
+            Comma,
+            Variant {
+                attrs: [
+                    Attribute {
+                        pound_token: Pound,
+                        style: AttrStyle::Outer,
+                        bracket_token: Bracket,
+                        meta: Meta::List {
+                            path: Path {
+                                leading_colon: None,
+                                segments: [
+                                    PathSegment {
+                                        ident: Ident {
+                                            ident: "code",
+                                            span: #0 bytes(2443..2447),
+                                        },
+                                        arguments: PathArguments::None,
+                                    },
+                                ],
+                            },
+                            delimiter: MacroDelimiter::Paren(
+                                Paren,
+                            ),
+                            tokens: TokenStream [
+                                Literal {
+                                    kind: Str,
+                                    symbol: "r9",
+                                    suffix: None,
+                                    span: #0 bytes(2448..2452),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2452..2453),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "R9",
+                                    suffix: None,
+                                    span: #0 bytes(2454..2458),
+                                },
+                            ],
+                        },
+                    },
+                ],
+                ident: Ident {
+                    ident: "R9",
+                    span: #0 bytes(2465..2467),
+                },
+                fields: Fields::Unit,
+                discriminant: Some(
+                    (
+                        Eq,
+                        Expr::Lit {
+                            attrs: [],
+                            lit: Lit::Int {
+                                token: 9,
+                            },
+                        },
+                    ),
+                ),
+            },
+            Comma,
+            Variant {
+                attrs: [
+                    Attribute {
+                        pound_token: Pound,
+                        style: AttrStyle::Outer,
+                        bracket_token: Bracket,
+                        meta: Meta::List {
+                            path: Path {
+                                leading_colon: None,
+                                segments: [
+                                    PathSegment {
+                                        ident: Ident {
+                                            ident: "code",
+                                            span: #0 bytes(2479..2483),
+                                        },
+                                        arguments: PathArguments::None,
+                                    },
+                                ],
+                            },
+                            delimiter: MacroDelimiter::Paren(
+                                Paren,
+                            ),
+                            tokens: TokenStream [
+                                Literal {
+                                    kind: Str,
+                                    symbol: "r10",
+                                    suffix: None,
+                                    span: #0 bytes(2484..2489),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2489..2490),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "R10",
+                                    suffix: None,
+                                    span: #0 bytes(2491..2496),
+                                },
+                            ],
+                        },
+                    },
+                ],
+                ident: Ident {
+                    ident: "R10",
+                    span: #0 bytes(2503..2506),
+                },
+                fields: Fields::Unit,
+                discriminant: Some(
+                    (
+                        Eq,
+                        Expr::Lit {
+                            attrs: [],
+                            lit: Lit::Int {
+                                token: 10,
+                            },
+                        },
+                    ),
+                ),
+            },
+            Comma,
+            Variant {
+                attrs: [
+                    Attribute {
+                        pound_token: Pound,
+                        style: AttrStyle::Outer,
+                        bracket_token: Bracket,
+                        meta: Meta::List {
+                            path: Path {
+                                leading_colon: None,
+                                segments: [
+                                    PathSegment {
+                                        ident: Ident {
+                                            ident: "code",
+                                            span: #0 bytes(2519..2523),
+                                        },
+                                        arguments: PathArguments::None,
+                                    },
+                                ],
+                            },
+                            delimiter: MacroDelimiter::Paren(
+                                Paren,
+                            ),
+                            tokens: TokenStream [
+                                Literal {
+                                    kind: Str,
+                                    symbol: "r11",
+                                    suffix: None,
+                                    span: #0 bytes(2524..2529),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2529..2530),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "R11",
+                                    suffix: None,
+                                    span: #0 bytes(2531..2536),
+                                },
+                            ],
+                        },
+                    },
+                ],
+                ident: Ident {
+                    ident: "R11",
+                    span: #0 bytes(2543..2546),
+                },
+                fields: Fields::Unit,
+                discriminant: Some(
+                    (
+                        Eq,
+                        Expr::Lit {
+                            attrs: [],
+                            lit: Lit::Int {
+                                token: 11,
+                            },
+                        },
+                    ),
+                ),
+            },
+            Comma,
+            Variant {
+                attrs: [
+                    Attribute {
+                        pound_token: Pound,
+                        style: AttrStyle::Outer,
+                        bracket_token: Bracket,
+                        meta: Meta::List {
+                            path: Path {
+                                leading_colon: None,
+                                segments: [
+                                    PathSegment {
+                                        ident: Ident {
+                                            ident: "code",
+                                            span: #0 bytes(2559..2563),
+                                        },
+                                        arguments: PathArguments::None,
+                                    },
+                                ],
+                            },
+                            delimiter: MacroDelimiter::Paren(
+                                Paren,
+                            ),
+                            tokens: TokenStream [
+                                Literal {
+                                    kind: Str,
+                                    symbol: "r12",
+                                    suffix: None,
+                                    span: #0 bytes(2564..2569),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2569..2570),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "R12",
+                                    suffix: None,
+                                    span: #0 bytes(2571..2576),
+                                },
+                            ],
+                        },
+                    },
+                ],
+                ident: Ident {
+                    ident: "R12",
+                    span: #0 bytes(2583..2586),
+                },
+                fields: Fields::Unit,
+                discriminant: Some(
+                    (
+                        Eq,
+                        Expr::Lit {
+                            attrs: [],
+                            lit: Lit::Int {
+                                token: 12,
+                            },
+                        },
+                    ),
+                ),
+            },
+            Comma,
+            Variant {
+                attrs: [
+                    Attribute {
+                        pound_token: Pound,
+                        style: AttrStyle::Outer,
+                        bracket_token: Bracket,
+                        meta: Meta::List {
+                            path: Path {
+                                leading_colon: None,
+                                segments: [
+                                    PathSegment {
+                                        ident: Ident {
+                                            ident: "code",
+                                            span: #0 bytes(2599..2603),
+                                        },
+                                        arguments: PathArguments::None,
+                                    },
+                                ],
+                            },
+                            delimiter: MacroDelimiter::Paren(
+                                Paren,
+                            ),
+                            tokens: TokenStream [
+                                Literal {
+                                    kind: Str,
+                                    symbol: "r13",
+                                    suffix: None,
+                                    span: #0 bytes(2604..2609),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2609..2610),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "R13",
+                                    suffix: None,
+                                    span: #0 bytes(2611..2616),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2616..2617),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "sp",
+                                    suffix: None,
+                                    span: #0 bytes(2618..2622),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2622..2623),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "SP",
+                                    suffix: None,
+                                    span: #0 bytes(2624..2628),
+                                },
+                            ],
+                        },
+                    },
+                ],
+                ident: Ident {
+                    ident: "SP",
+                    span: #0 bytes(2635..2637),
+                },
+                fields: Fields::Unit,
+                discriminant: Some(
+                    (
+                        Eq,
+                        Expr::Lit {
+                            attrs: [],
+                            lit: Lit::Int {
+                                token: 13,
+                            },
+                        },
+                    ),
+                ),
+            },
+            Comma,
+            Variant {
+                attrs: [
+                    Attribute {
+                        pound_token: Pound,
+                        style: AttrStyle::Outer,
+                        bracket_token: Bracket,
+                        meta: Meta::List {
+                            path: Path {
+                                leading_colon: None,
+                                segments: [
+                                    PathSegment {
+                                        ident: Ident {
+                                            ident: "code",
+                                            span: #0 bytes(2657..2661),
+                                        },
+                                        arguments: PathArguments::None,
+                                    },
+                                ],
+                            },
+                            delimiter: MacroDelimiter::Paren(
+                                Paren,
+                            ),
+                            tokens: TokenStream [
+                                Literal {
+                                    kind: Str,
+                                    symbol: "r14",
+                                    suffix: None,
+                                    span: #0 bytes(2662..2667),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2667..2668),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "R14",
+                                    suffix: None,
+                                    span: #0 bytes(2669..2674),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2674..2675),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "lr",
+                                    suffix: None,
+                                    span: #0 bytes(2676..2680),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2680..2681),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "LR",
+                                    suffix: None,
+                                    span: #0 bytes(2682..2686),
+                                },
+                            ],
+                        },
+                    },
+                ],
+                ident: Ident {
+                    ident: "LR",
+                    span: #0 bytes(2693..2695),
+                },
+                fields: Fields::Unit,
+                discriminant: Some(
+                    (
+                        Eq,
+                        Expr::Lit {
+                            attrs: [],
+                            lit: Lit::Int {
+                                token: 14,
+                            },
+                        },
+                    ),
+                ),
+            },
+            Comma,
+            Variant {
+                attrs: [
+                    Attribute {
+                        pound_token: Pound,
+                        style: AttrStyle::Outer,
+                        bracket_token: Bracket,
+                        meta: Meta::List {
+                            path: Path {
+                                leading_colon: None,
+                                segments: [
+                                    PathSegment {
+                                        ident: Ident {
+                                            ident: "code",
+                                            span: #0 bytes(2715..2719),
+                                        },
+                                        arguments: PathArguments::None,
+                                    },
+                                ],
+                            },
+                            delimiter: MacroDelimiter::Paren(
+                                Paren,
+                            ),
+                            tokens: TokenStream [
+                                Literal {
+                                    kind: Str,
+                                    symbol: "r15",
+                                    suffix: None,
+                                    span: #0 bytes(2720..2725),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2725..2726),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "R15",
+                                    suffix: None,
+                                    span: #0 bytes(2727..2732),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2732..2733),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "pc",
+                                    suffix: None,
+                                    span: #0 bytes(2734..2738),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2738..2739),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "PC",
+                                    suffix: None,
+                                    span: #0 bytes(2740..2744),
+                                },
+                            ],
+                        },
+                    },
+                ],
+                ident: Ident {
+                    ident: "PC",
+                    span: #0 bytes(2751..2753),
+                },
+                fields: Fields::Unit,
+                discriminant: Some(
+                    (
+                        Eq,
+                        Expr::Lit {
+                            attrs: [],
+                            lit: Lit::Int {
+                                token: 15,
+                            },
+                        },
+                    ),
+                ),
+            },
+            Comma,
+            Variant {
+                attrs: [
+                    Attribute {
+                        pound_token: Pound,
+                        style: AttrStyle::Outer,
+                        bracket_token: Bracket,
+                        meta: Meta::List {
+                            path: Path {
+                                leading_colon: None,
+                                segments: [
+                                    PathSegment {
+                                        ident: Ident {
+                                            ident: "code",
+                                            span: #0 bytes(2773..2777),
+                                        },
+                                        arguments: PathArguments::None,
+                                    },
+                                ],
+                            },
+                            delimiter: MacroDelimiter::Paren(
+                                Paren,
+                            ),
+                            tokens: TokenStream [
+                                Literal {
+                                    kind: Str,
+                                    symbol: "r16",
+                                    suffix: None,
+                                    span: #0 bytes(2778..2783),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2783..2784),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "R16",
+                                    suffix: None,
+                                    span: #0 bytes(2785..2790),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2790..2791),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "cpsr",
+                                    suffix: None,
+                                    span: #0 bytes(2792..2798),
+                                },
+                                Punct {
+                                    ch: ',',
+                                    spacing: Alone,
+                                    span: #0 bytes(2798..2799),
+                                },
+                                Literal {
+                                    kind: Str,
+                                    symbol: "CPSR",
+                                    suffix: None,
+                                    span: #0 bytes(2800..2806),
+                                },
+                            ],
+                        },
+                    },
+                ],
+                ident: Ident {
+                    ident: "CPSR",
+                    span: #0 bytes(2813..2817),
+                },
+                fields: Fields::Unit,
+                discriminant: Some(
+                    (
+                        Eq,
+                        Expr::Lit {
+                            attrs: [],
+                            lit: Lit::Int {
+                                token: 16,
+                            },
+                        },
+                    ),
+                ),
+            },
+            Comma,
+        ],
+    },
+}

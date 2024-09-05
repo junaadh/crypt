@@ -4,3 +4,15 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+emacro = { version = "0.1.0", path = "emacro" }
+
+[lib]
+name = "esiux_isa"
+path = "src/lib.rs"
+
+[[bin]]
+name = "esiux_vm"
+path = "src/bin/vm.rs"
+
+[workspace]
+members = ["emacro"]
