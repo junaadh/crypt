@@ -1,4 +1,9 @@
-use cryptic::{mem::MemError, parse::ParseNumeric, register};
+use cryptic::{
+    mem::MemError,
+    op::{Op, Operand},
+    parse::ParseNumeric,
+    register::{self, Register},
+};
 
 fn n() -> Result<(), MemError> {
     Err(MemError::OutOfBounds(10))
@@ -30,6 +35,28 @@ fn main() -> cryptic::Res<()> {
 
     println!("0x{res:02x}");
     println!("0x{act:02x}");
+
+    let op1 = "[rzr]";
+    let op2 = "[r1, #2]";
+    let op3 = "[r1, r2]";
+
+    let op1 = op1.parse::<Operand>()?;
+    let op2 = op2.parse::<Operand>()?;
+    let op3 = op3.parse::<Operand>()?;
+
+    println!("{op1}\n{op2}\n{op3}");
+
+    // let o = "ldr r1, #78";
+    let o = "";
+    let o_split = o.split_once(' ').unwrap_or((o, ""));
+    println!("{o_split:?}");
+
+    let instruction = "push r10";
+    let instruction = instruction.parse::<Op>()?;
+    println!("{instruction:?}");
+    let instruction = "nop";
+    let instruction = instruction.parse::<Op>()?;
+    println!("{instruction:?}");
 
     Ok(())
 }

@@ -3,7 +3,9 @@
 pub mod asm;
 pub mod error;
 pub mod flags;
+pub mod instruction;
 pub mod interrupts;
+pub mod literals;
 pub mod mem;
 pub mod op;
 pub mod parse;

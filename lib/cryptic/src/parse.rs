@@ -11,10 +11,32 @@ impl ParseNumeric for &str {
     where
         T: FromStrNumber,
     {
-        let (base, offset) = match self {
-            x if &x[..2] == "0x" => (16, 2usize),
-            x if &x[..1] == "b" => (2, 1usize),
-            _ => (10, 0usize),
+        let (base, offset) = if self.len() >= 3 {
+            match self {
+                x if &x[..2] == "0x" => (16, 2usize),
+                x if &x[..1] == "b" => (2, 1usize),
+                _ => (10, 0usize),
+            }
+        } else {
+            (10, 0usize)
+        };
+        T::from_str(&self[offset..], base)
+    }
+}
+
+impl ParseNumeric for str {
+    fn parse_no<T>(&self) -> Res<T>
+    where
+        T: FromStrNumber,
+    {
+        let (base, offset) = if self.len() >= 3 {
+            match self {
+                x if &x[..2] == "0x" => (16, 2usize),
+                x if &x[..1] == "b" => (2, 1usize),
+                _ => (10, 0usize),
+            }
+        } else {
+            (10, 0usize)
         };
         T::from_str(&self[offset..], base)
     }
