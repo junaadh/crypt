@@ -1,6 +1,6 @@
 use emacro::EnumFrom;
 
-pub const REGISTER_NO: usize = 17;
+pub const REGISTER_NO: usize = 16;
 
 /// # Registers
 ///
@@ -9,7 +9,7 @@ pub const REGISTER_NO: usize = 17;
 /// * one stack pointer register
 /// * one link register
 /// * one program counter
-/// * and one current program status register (Flags)
+/// * and one current program status register (Flags) - moved to a seperate struct
 ///
 /// * WIP: One register will be allocated for sys call args
 ///
@@ -48,8 +48,6 @@ pub enum Register {
     LR, // R14
     #[code("r15", "R15", "pc", "PC")]
     PC, // R15
-    #[code("r16", "R16", "cpsr", "CPSR")]
-    CPSR, // Flags
 }
 
 #[cfg(test)]
