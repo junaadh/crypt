@@ -8,29 +8,27 @@
 #[macro_export]
 macro_rules! impl_pretty_print {
     ($ty: ty) => {
-        use std::fmt;
-
-        impl fmt::Display for $ty {
-            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                fmt::Display::fmt(&self.value, f)
+        impl std::fmt::Display for $ty {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                std::fmt::Display::fmt(&self.value, f)
             }
         }
 
-        impl fmt::LowerHex for $ty {
-            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                fmt::LowerHex::fmt(&self.value, f)
+        impl std::fmt::LowerHex for $ty {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                std::fmt::LowerHex::fmt(&self.value, f)
             }
         }
 
-        impl fmt::UpperHex for $ty {
-            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                fmt::UpperHex::fmt(&self.value, f)
+        impl std::fmt::UpperHex for $ty {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                std::fmt::UpperHex::fmt(&self.value, f)
             }
         }
 
-        impl fmt::Binary for $ty {
-            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                fmt::Binary::fmt(&self.value, f)
+        impl std::fmt::Binary for $ty {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                std::fmt::Binary::fmt(&self.value, f)
             }
         }
     };

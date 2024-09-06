@@ -158,9 +158,9 @@ pub fn impl_enum_from(tt: TokenStream) -> TokenStream {
 }
 
 #[derive(Debug)]
-struct ErrorType {
-    path: Path,
-    error: Ident,
+pub struct ErrorType {
+    pub path: Path,
+    pub error: Ident,
 }
 
 impl Parse for ErrorType {

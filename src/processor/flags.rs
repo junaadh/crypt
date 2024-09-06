@@ -7,7 +7,8 @@
 ///   * Z - Zero Flag
 ///   * C - Carry Flag
 ///   * V - Overflow Flag
-pub enum Condtion {
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Condition {
     /// ## Equal
     /// * execute if Z flag set
     /// * result is zero
@@ -105,6 +106,17 @@ pub enum Condtion {
     /// 0b1111
     /// ```
     Nv,
+}
+
+impl std::convert::TryFrom<u8> for Condition {
+    type Error = crate::error::EsiuxErrorKind;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            14 => Ok(Self::Al),
+            _ => Err(crate::error::EsiuxErrorKind::TryFrom(Box::new(value))),
+        }
+    }
 }
 
 /// # CPSR Flags

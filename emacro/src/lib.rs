@@ -1,9 +1,11 @@
 extern crate proc_macro;
 
+use esiux_codable::impl_codable;
 use esiux_err::impl_cryptee;
 use esiux_reg::impl_enum_from;
 use proc_macro::TokenStream;
 
+mod esiux_codable;
 mod esiux_err;
 mod esiux_reg;
 
@@ -60,4 +62,9 @@ pub fn derive_err(item: TokenStream) -> TokenStream {
 #[proc_macro_derive(EnumFrom, attributes(code, error))]
 pub fn derive_enum(item: TokenStream) -> TokenStream {
     impl_enum_from(item)
+}
+
+#[proc_macro_derive(Codable, attributes(alias, error))]
+pub fn derive_codable(item: TokenStream) -> TokenStream {
+    impl_codable(item)
 }
