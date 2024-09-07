@@ -19,6 +19,25 @@ pub struct DPI {
     pub operand: Operand,
 }
 
+impl DPI {
+    pub fn new(op: Op, rd: Register, rn: Register, op1: Operand) -> Self {
+        let imm = match op1 {
+            Operand::Reg(_) => true,
+            Operand::Imm(_) => false,
+        };
+
+        Self {
+            cond: Condition::Al,
+            instruction_type: ((op as u8) >> 4) & 0b111,
+            imm,
+            opcode: op,
+            rn,
+            rd,
+            operand: op1,
+        }
+    }
+}
+
 impl fmt::Display for DPI {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.operand {

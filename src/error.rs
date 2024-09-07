@@ -19,6 +19,12 @@ pub enum EsiuxErrorKind {
     FromStr(Box<dyn Display + 'static>),
     /// Unable to decode instruction: {} ; {:032b}
     Decode(u32),
+    /// Maximum value l12 can hold is 4095 provided is {}
+    Overflow12(u16),
+    /// Maximum value l20 can hold is 1048575 provided is {}
+    Overflow20(u32),
+    /// {} requires atleast {} parts
+    NotEnoughParts(Box<dyn Display + 'static>, u8),
 }
 
 impl From<ParseIntError> for EsiuxErrorKind {

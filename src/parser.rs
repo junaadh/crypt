@@ -1,3 +1,7 @@
+use std::{fmt::Display, str::FromStr};
+
+use crate::processor::{Instruction, Op, Register};
+
 pub trait ToNum {
     fn mask(&self) -> u32;
 }
@@ -8,6 +12,53 @@ impl ToNum for bool {
             1
         } else {
             0
+        }
+    }
+}
+
+impl FromStr for Instruction {
+    type Err = crate::error::EsiuxErrorKind;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (instruction, parts) =
+            s.split_once(' ')
+                .ok_or(crate::error::EsiuxErrorKind::FromStr(Box::new(format!(
+                    "requires a spaced delimeter: {s}"
+                ))))?;
+        let parts = parts.split(',').map(|x| x.trim()).collect::<Vec<&str>>();
+
+        let instruction = instruction.parse::<Op>()?;
+
+        match instruction {
+            Op::Add => {
+                // add  rd, rn, op1
+                if parts.len() < 3 {
+                    return Err(crate::error::EsiuxErrorKind::NotEnoughParts(
+                        Box::new(instruction),
+                        3,
+                    ));
+                }
+
+                let rd = parts[0].parse::<crate::processor::Register>()?;
+                let rn = parts[1].parse::<crate::processor::Register>()?;
+                let op = parts[2].parse::<crate::types::Operand>()?;
+
+                Ok(Self::Add(crate::processor::DPI::new(
+                    instruction,
+                    rd,
+                    rn,
+                    op,
+                )))
+            }
+            Op::Ldr => {
+                // ldr  rd, [rn]
+                // ldr  rd, [rn, #4]
+                // ldr  rd, [rn], #4
+                todo!()
+            }
+            _ => Err(crate::error::EsiuxErrorKind::FromStr(Box::new(format!(
+                "Failed to parse instruction: {s}"
+            )))),
         }
     }
 }
