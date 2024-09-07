@@ -104,7 +104,7 @@ pub fn impl_enum_from(tt: TokenStream) -> TokenStream {
             fn try_from(value: u8) -> Result<Self, Self::Error> {
                 match value {
                     #(#from_num_u8)*
-                    _ => Err(#error::TryFrom(Box::new(value))),
+                    _ => Err(#error::TryFrom(Box::new(format!("Failed to convert {value} to register")))),
                 }
             }
         }
@@ -115,7 +115,7 @@ pub fn impl_enum_from(tt: TokenStream) -> TokenStream {
             fn try_from(value: u16) -> Result<Self, Self::Error> {
                 match value {
                     #(#from_num_u16)*
-                    _ => Err(#error::TryFrom(Box::new(value))),
+                    _ => Err(#error::TryFrom(Box::new(format!("Failed to convert {value} to register")))),
                 }
             }
         }
@@ -126,7 +126,7 @@ pub fn impl_enum_from(tt: TokenStream) -> TokenStream {
             fn try_from(value: u32) -> Result<Self, Self::Error> {
                 match value {
                     #(#from_num_u32)*
-                    _ => Err(#error::TryFrom(Box::new(value))),
+                    _ => Err(#error::TryFrom(Box::new(format!("Failed to convert {value} to register")))),
                 }
             }
         }
@@ -137,7 +137,7 @@ pub fn impl_enum_from(tt: TokenStream) -> TokenStream {
             fn from_str(s: &str) -> Result<Self, Self::Err> {
                 match s {
                     #(#from_str)*
-                    _ => Err(#error::FromStr(Box::new(s.to_string()))),
+                    _ => Err(#error::FromStr(Box::new(format!("Failed to convert {s} to register ")))),
                 }
             }
         }

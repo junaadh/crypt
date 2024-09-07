@@ -28,6 +28,7 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
     let mut from_u8 = Vec::<proc_macro2::TokenStream>::new();
     let mut display = Vec::<proc_macro2::TokenStream>::new();
     let mut match_ = Vec::<proc_macro2::TokenStream>::new();
+    let mut decode_ = Vec::<proc_macro2::TokenStream>::new();
 
     for variant in data.variants {
         let variant_name = &variant.ident;
@@ -52,6 +53,8 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
             .cloned()
             .expect("Expected one value");
 
+        // println!("{types}");
+
         let Alias { mnumonic, number } = alias.unwrap();
         let mnumonic = mnumonic.as_str();
 
@@ -74,6 +77,23 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
         match_.push(quote! {
             #variant_name => #variant_name(it),
         });
+
+        let decode_map = match types.as_str() {
+            "DPI" => quote! {
+                Op::#variant_name => Ok(#name::#variant_name(crate::processor::DPI::try_from(value)?)),
+            },
+            "LSI" => quote! {
+                Op::#variant_name => Ok(#name::#variant_name(crate::processor::LSI::try_from(value)?)),
+            },
+            "BRI" => quote! {
+                Op::#variant_name => Ok(#name::#variant_name(crate::processor::BRI::try_from(value)?)),
+            },
+            "SCI" => quote! {
+                Op::#variant_name => Ok(#name::#variant_name(crate::processor::SCI::try_from(value)?)),
+            },
+            _ => panic!("Unexpected type fuck.."),
+        };
+        decode_.push(decode_map);
     }
 
     quote! {
@@ -92,14 +112,29 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
                 let s = s.to_lowercase();
                 match s.as_str() {
                     #(#from_str)*
-                    _ => Err(Self::Err::FromStr(Box::new(s.to_string()))),
+                    _ => Err(Self::Err::FromStr(Box::new(format!("Failed to parse {s} to Op")))),
                 }
             }
         }
 
-        // impl std::convert::TryFrom<u32> for #name {
+        impl std::convert::TryFrom<u32> for #name {
+            type Error = #error;
 
-        // }
+            fn try_from(value: u32) -> Result<Self, Self::Error> {
+                let ins = ((value >> 4) & 0b111) as u8;
+                let ins = match ins {
+                    0x1 | 0x5 | 0x7 => ((value >> 8) & 0xf) as u8 | ins << 4,
+                    0x3 => ((value >> 11) & 0b1) as u8 | ins << 4,
+                    _ => panic!("This shouldnt happen"),
+                };
+                let ins = Op::try_from(ins)?;
+
+                match ins {
+                    #(#decode_)*
+                    _ => Err(Self::Error::Decode(value)),
+                }
+            }
+        }
 
         impl std::convert::TryFrom<u8> for Op {
             type Error = #error;
@@ -107,7 +142,7 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
             fn try_from(value: u8) -> Result<Self, Self::Error> {
                 match value {
                     #(#from_u8)*
-                    _ => Err(Self::Error::TryFrom(Box::new(value))),
+                    _ => Err(Self::Error::TryFrom(Box::new(format!("Failed to parse {value} to Op")))),
                 }
             }
         }

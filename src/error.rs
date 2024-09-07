@@ -17,6 +17,8 @@ pub enum EsiuxErrorKind {
     TryFrom(Box<dyn Display + 'static>),
     /// Unable to parse from string: {}
     FromStr(Box<dyn Display + 'static>),
+    /// Unable to decode instruction: {} ; {:032b}
+    Decode(u32),
 }
 
 impl From<ParseIntError> for EsiuxErrorKind {

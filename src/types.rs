@@ -24,11 +24,11 @@ impl_pretty_print!(l12);
 ///
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 #[allow(non_camel_case_types)]
-pub struct l24 {
+pub struct l20 {
     pub value: u32,
 }
 
-impl_pretty_print!(l24);
+impl_pretty_print!(l20);
 
 /// # Operand
 ///
