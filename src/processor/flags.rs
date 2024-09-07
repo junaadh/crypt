@@ -12,97 +12,97 @@ pub enum Condition {
     /// ## Equal
     /// * execute if Z flag set
     /// * result is zero
-    /// ```rust
+    /// ```text
     /// 0b0000
     /// ```
     Eq,
     /// ## Not Equal
     /// * Execute if Z flag not set
-    /// ```rust
+    /// ```text
     /// 0b0001
     /// ```
     Ne,
     /// ## Carry Set / Unsigned Higher
     /// * execute if C flags set
-    /// ```rust
+    /// ```text
     /// 0b0010
     /// ```
     Cs,
     /// ## Carry Clear / Unsigned lower
     /// * execute if C flag clear
-    /// ```rust
+    /// ```text
     /// 0b0011
     /// ```
     Cc,
     /// ## Minus / Negetive
     /// * Execute if N flag set
-    /// ```rust
+    /// ```text
     /// 0b0100
     /// ```
     Mi,
     /// ## Plus / Positive
     /// * Execute if N flag clear
-    /// ```rust
+    /// ```text
     /// 0b0101
     /// ```
     Pl,
     /// ## Overflow set
     /// * Execute if V flag set
-    /// ```rust
+    /// ```text
     /// 0b0110
     /// ```
     Vs,
     /// ## Overflow clear
     /// * Execute if V flag clear
-    /// ```rust
+    /// ```text
     /// 0b0111
     /// ```
     Vc,
     /// ## Unsigned higher
     /// * Execute if both C and Z flag set
-    /// ```rust
+    /// ```text
     /// 0b1000
     /// ```
     Hi,
     /// ## Unsigned lower
     /// * Execute if C is clear and Z flag set
-    /// ```rust
+    /// ```text
     /// 0b1001
     /// ```
     Ls,
     /// ## Greater than or Equal
     /// * Execute if N == V
-    /// ```rust
+    /// ```text
     /// 0b1010
     /// ```
     Ge,
     /// ## Less than
     /// * Execute if N != V
-    /// ```rust
+    /// ```text
     /// 0b1011
     /// ```
     Lt,
     /// ## Greater than
     /// * Execute if Z == 0 and N == V
-    /// ```rust
+    /// ```text
     /// 0b1100
     /// ```
     Gt,
     /// ## Less than or Equal
     /// * Execute if Z == 1 or N != V
-    /// ```rust
+    /// ```text
     /// 0b1101
     /// ```
     Le,
     /// ## Always
     /// * Execute always
-    /// ```rust
+    /// ```text
     /// 0b1110
     /// ```
     Al,
     /// ## Never
     /// * Never execute
-    /// ```rust
+    /// ```text
     /// 0b1111
     /// ```
     Nv,
@@ -113,7 +113,22 @@ impl std::convert::TryFrom<u8> for Condition {
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
+            0 => Ok(Self::Eq),
+            1 => Ok(Self::Ne),
+            2 => Ok(Self::Cs),
+            3 => Ok(Self::Cc),
+            4 => Ok(Self::Mi),
+            5 => Ok(Self::Pl),
+            6 => Ok(Self::Vs),
+            7 => Ok(Self::Vc),
+            8 => Ok(Self::Hi),
+            9 => Ok(Self::Ls),
+            10 => Ok(Self::Ge),
+            11 => Ok(Self::Lt),
+            12 => Ok(Self::Gt),
+            13 => Ok(Self::Le),
             14 => Ok(Self::Al),
+            15 => Ok(Self::Nv),
             _ => Err(crate::error::EsiuxErrorKind::TryFrom(Box::new(value))),
         }
     }

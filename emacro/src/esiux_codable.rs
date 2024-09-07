@@ -1,5 +1,5 @@
 use proc_macro::TokenStream;
-use quote::quote;
+use quote::{quote, ToTokens};
 use syn::{parse::Parse, parse_macro_input, Data, DeriveInput, LitInt, LitStr, Token};
 
 use crate::esiux_reg::ErrorType;
@@ -23,10 +23,11 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
 
     let ErrorType { path, error } = error.unwrap();
 
+    let mut init_ = Vec::<proc_macro2::TokenStream>::new();
     let mut from_str = Vec::<proc_macro2::TokenStream>::new();
     let mut from_u8 = Vec::<proc_macro2::TokenStream>::new();
     let mut display = Vec::<proc_macro2::TokenStream>::new();
-    let mut as_u8 = Vec::<proc_macro2::TokenStream>::new();
+    let mut match_ = Vec::<proc_macro2::TokenStream>::new();
 
     for variant in data.variants {
         let variant_name = &variant.ident;
@@ -41,6 +42,15 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
                 );
             }
         }
+
+        let types = variant
+            .fields
+            .iter()
+            .map(|x| x.ty.to_token_stream().to_string())
+            .collect::<Vec<_>>()
+            .first()
+            .cloned()
+            .expect("Expected one value");
 
         let Alias { mnumonic, number } = alias.unwrap();
         let mnumonic = mnumonic.as_str();
@@ -57,23 +67,25 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
             Self::#variant_name => write!(f, "{}", #mnumonic),
         });
 
-        as_u8.push(quote! {
-            Self::#variant_name => #number,
+        init_.push(quote! {
+            #variant_name = #number,
+        });
+
+        match_.push(quote! {
+            #variant_name => #variant_name(it),
         });
     }
 
     quote! {
         use #path;
 
-        impl #name {
-            pub fn as_u8(&self) -> u8 {
-                match self {
-                    #(#as_u8)*
-                }
-            }
+        #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+        #[repr(u8)]
+        pub enum Op {
+            #(#init_)*
         }
 
-        impl std::str::FromStr for #name {
+        impl std::str::FromStr for Op {
             type Err = #error;
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -85,7 +97,11 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
             }
         }
 
-        impl std::convert::TryFrom<u8> for #name {
+        // impl std::convert::TryFrom<u32> for #name {
+
+        // }
+
+        impl std::convert::TryFrom<u8> for Op {
             type Error = #error;
 
             fn try_from(value: u8) -> Result<Self, Self::Error> {
@@ -96,7 +112,7 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
             }
         }
 
-        impl std::fmt::Display for #name {
+        impl std::fmt::Display for Op {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 match self {
                     #(#display)*
@@ -104,7 +120,7 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
             }
         }
 
-        impl std::fmt::Debug for #name {
+        impl std::fmt::Debug for Op {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 match self {
                     #(#display)*
