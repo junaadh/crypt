@@ -214,7 +214,14 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
                 let s = s.to_lowercase();
-                match &s[..3] {
+
+                let s = if s.len() > 3 {
+                    &s[..3]
+                } else {
+                    s.as_str()
+                };
+                
+                match s {
                     #(#from_str)*
                     _ => Err(Self::Err::FromStr(Box::new(format!("Failed to parse {s} to Op")))),
                 }

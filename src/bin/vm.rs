@@ -31,8 +31,24 @@ fn main() {
         rn = &rn[..rn.len() - 1];
     }
 
-    println!("rd: {rd}");
-    println!("post-index: {index}");
-    println!("rn: {rn}");
-    println!("offset: {val}");
+    let a = "abc";
+    let b = "abcd";
+    let c = "abcde";
+
+    // println!("rd: {rd}");
+    // println!("post-index: {index}");
+    // println!("rn: {rn}");
+    // println!("offset: {val}");
+
+    println!("{a}", a = shorten(a));
+    println!("{b}", b = shorten(b));
+    println!("{c}", c = shorten(c));
+}
+
+fn shorten(s: &str) -> &str {
+    if s.len() > 3 {
+        &s[..3]
+    } else {
+        s
+    }
 }
