@@ -29,6 +29,8 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
     let mut display = Vec::<proc_macro2::TokenStream>::new();
     let mut match_ = Vec::<proc_macro2::TokenStream>::new();
     let mut decode_ = Vec::<proc_macro2::TokenStream>::new();
+    let mut parse_ = Vec::<proc_macro2::TokenStream>::new();
+    let mut debug_instruction = Vec::<proc_macro2::TokenStream>::new();
 
     for variant in data.variants {
         let variant_name = &variant.ident;
@@ -78,26 +80,128 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
             #variant_name => #variant_name(it),
         });
 
-        let decode_map = match types.as_str() {
-            "DPI" => quote! {
-                Op::#variant_name => Ok(#name::#variant_name(crate::processor::DPI::try_from(value)?)),
-            },
-            "LSI" => quote! {
-                Op::#variant_name => Ok(#name::#variant_name(crate::processor::LSI::try_from(value)?)),
-            },
-            "BRI" => quote! {
-                Op::#variant_name => Ok(#name::#variant_name(crate::processor::BRI::try_from(value)?)),
-            },
-            "SCI" => quote! {
-                Op::#variant_name => Ok(#name::#variant_name(crate::processor::SCI::try_from(value)?)),
-            },
+        debug_instruction.push(quote! {
+            Self::#variant_name(i) => write!(f, "{}", i),
+        });
+
+        match types.as_str() {
+            "DPI" => {
+                decode_.push(quote! {
+                    Op::#variant_name => Ok(#name::#variant_name(crate::processor::DPI::try_from(value)?)),
+                });
+                parse_.push(quote! {
+                    Op::#variant_name => {
+                        if parts.len() < 3 {
+                            return Err(crate::error::EsiuxErrorKind::NotEnoughParts(
+                                Box::new(instruction_parsed),
+                                3,
+                            ));
+                        }
+
+                        let rd = parts[0].parse::<crate::processor::Register>()?;
+                        let rn = parts[1].parse::<crate::processor::Register>()?;
+                        let op = parts[2].parse::<crate::types::Operand>()?;
+
+                        let dpi = instruction.mk_instruction::<crate::processor::DPI>(instruction_parsed, rd, rn, op)?;
+
+                        Ok(Self::#variant_name(dpi))
+                    },
+                })
+            }
+            "LSI" => {
+                decode_.push(quote! {
+                    Op::#variant_name => Ok(#name::#variant_name(crate::processor::LSI::try_from(value)?)),
+                });
+                parse_.push(quote! {
+                    Op::#variant_name => {                    
+                        if parts.len() < 2 {
+                            return Err(crate::error::EsiuxErrorKind::NotEnoughParts(
+                                Box::new(instruction_parsed),
+                                2,
+                            ));
+                        }
+
+                        let mut index = false;
+                        let mut val = crate::types::l12::new_u(0)?;
+
+                        let rd = parts[0];
+                        let mut rn = &parts[1][1..];
+
+                        if let Some(num) = parts.get(2) {
+                            if num.ends_with("]") {
+                                val = num[1..num.len() - 1].parse::<crate::types::l12>()?;
+                            } else {
+                                index = true;
+                                rn = &rn[..rn.len() - 1];
+                                val = num[1..].parse::<crate::types::l12>()?;
+                            }
+                        } else {
+                            rn = &rn[..rn.len() - 1];
+                        }
+
+                        let rd = rd.parse::<crate::processor::Register>()?;
+                        let rn = rn.parse::<crate::processor::Register>()?;
+
+                        let mut lsi = instruction.mk_instruction::<crate::processor::LSI>(instruction_parsed, rd, rn, val)?;
+
+                        lsi.index = index;
+
+                        Ok(Self::#variant_name(lsi))
+                    },       
+                })
+            }
+            "BRI" => {
+                decode_.push(quote! {
+                    Op::#variant_name => Ok(#name::#variant_name(crate::processor::BRI::try_from(value)?)),
+                });
+                parse_.push(quote! {
+                    Op::#variant_name => {
+                        if parts.len() < 1 {
+                            return Err(crate::error::EsiuxErrorKind::NotEnoughParts(
+                                Box::new(instruction_parsed),
+                                1,
+                            ));
+                        }
+
+                        let offset = parts[0].parse::<crate::types::l20>()?;
+
+                        let bri = instruction.mk_instruction::<crate::processor::BRI>(
+                            instruction_parsed,
+                            crate::processor::Register::R0,
+                            crate::processor::Register::R0,
+                            offset,
+                        )?;
+
+                        Ok(Self::#variant_name(bri))
+                    },
+                })
+            }
+            "SCI" => {
+                decode_.push(quote! {
+                    Op::#variant_name => Ok(#name::#variant_name(crate::processor::SCI::try_from(value)?)),
+                });
+                parse_.push(quote! {
+                    Op::#variant_name => {
+                        let int_key = parts[0].parse::<crate::types::l12>()?.value as u8;
+
+                        let sci = instruction.mk_instruction::<crate::processor::SCI>(
+                            instruction_parsed,
+                            crate::processor::Register::R0,
+                            crate::processor::Register::R0,
+                            int_key,
+                        )?;
+
+                        Ok(Self::#variant_name(sci))
+                    },
+                })
+            }
             _ => panic!("Unexpected type fuck.."),
         };
-        decode_.push(decode_map);
     }
 
     quote! {
         use #path;
+        use crate::parser::ParserImpl;
 
         #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
         #[repr(u8)]
@@ -110,7 +214,7 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
                 let s = s.to_lowercase();
-                match s.as_str() {
+                match &s[..3] {
                     #(#from_str)*
                     _ => Err(Self::Err::FromStr(Box::new(format!("Failed to parse {s} to Op")))),
                 }
@@ -147,6 +251,28 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
             }
         }
 
+        impl std::str::FromStr for #name {
+            type Err = #error;
+
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                let (instruction, parts) =
+                    s.split_once(' ')
+                        .ok_or(crate::error::EsiuxErrorKind::FromStr(Box::new(format!(
+                            "requires a spaced delimeter: {s}"
+                        ))))?;
+                let parts = parts.split(',').map(|x| x.trim()).collect::<Vec<&str>>();
+
+                let instruction_parsed = instruction.parse::<Op>()?;
+
+                match instruction_parsed {
+                    #(#parse_)*
+                    _ => Err(crate::error::EsiuxErrorKind::FromStr(Box::new(format!(
+                            "unrecognized instruction: {s}"
+                        )))),
+                }
+            }
+        }
+
         impl std::fmt::Display for Op {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 match self {
@@ -162,6 +288,15 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
                 }
             }
         }
+
+        impl std::fmt::Display for #name {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                match self {
+                    #(#debug_instruction)*
+                }
+            }
+        }
+
     }
     .into()
 }

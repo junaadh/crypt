@@ -1,7 +1,7 @@
 use std::fmt;
 
 use crate::{
-    parser::ToNum,
+    parser::{Negative, Parser, ToNum},
     types::{l12, l20, Operand},
 };
 
@@ -17,25 +17,6 @@ pub struct DPI {
     pub rn: Register,
     pub rd: Register,
     pub operand: Operand,
-}
-
-impl DPI {
-    pub fn new(op: Op, rd: Register, rn: Register, op1: Operand) -> Self {
-        let imm = match op1 {
-            Operand::Reg(_) => true,
-            Operand::Imm(_) => false,
-        };
-
-        Self {
-            cond: Condition::Al,
-            instruction_type: ((op as u8) >> 4) & 0b111,
-            imm,
-            opcode: op,
-            rn,
-            rd,
-            operand: op1,
-        }
-    }
 }
 
 impl fmt::Display for DPI {
@@ -98,6 +79,34 @@ impl TryFrom<u32> for DPI {
             rn,
             rd,
             operand,
+        })
+    }
+}
+
+impl Parser<DPI> for DPI {
+    type Op1 = Operand;
+
+    fn parse_instruction(
+        value: &str,
+        opcode: Op,
+        rd: Register,
+        rn: Register,
+        op1: Self::Op1,
+    ) -> crate::Res<DPI> {
+        let cond = value.parse::<Condition>()?;
+        let imm = match op1 {
+            Operand::Reg(_) => false,
+            Operand::Imm(_) => true,
+        };
+
+        Ok(DPI {
+            cond,
+            instruction_type: ((opcode as u8) >> 4) & 0b111,
+            imm,
+            opcode,
+            rn,
+            rd,
+            operand: op1,
         })
     }
 }
@@ -178,6 +187,36 @@ impl TryFrom<u32> for LSI {
     }
 }
 
+impl Parser<LSI> for LSI {
+    type Op1 = l12;
+
+    fn parse_instruction(
+        value: &str,
+        opcode: Op,
+        rd: Register,
+        rn: Register,
+        op1: Self::Op1,
+    ) -> crate::Res<LSI> {
+        let cond = value.parse::<Condition>()?;
+        // TODO: Fix this
+        let index = false;
+        let negative = op1.is_negative();
+        let write_back = value.ends_with("w");
+
+        Ok(Self {
+            cond,
+            instruction_type: ((opcode as u8) >> 4) & 0b111,
+            index,
+            negative,
+            write_back,
+            load_store: opcode,
+            rd,
+            rn,
+            offset: op1,
+        })
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 pub struct BRI {
     pub cond: Condition,
@@ -224,6 +263,27 @@ impl TryFrom<u32> for BRI {
     }
 }
 
+impl Parser<BRI> for BRI {
+    type Op1 = l20;
+
+    fn parse_instruction(
+        value: &str,
+        opcode: Op,
+        _: Register,
+        _: Register,
+        op1: Self::Op1,
+    ) -> crate::Res<BRI> {
+        let cond = value.parse::<Condition>()?;
+
+        Ok(BRI {
+            cond,
+            instruction_type: ((opcode as u8) >> 4) & 0b111,
+            opcode,
+            offset: op1,
+        })
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 pub struct SCI {
     pub cond: Condition,
@@ -263,6 +323,27 @@ impl TryFrom<u32> for SCI {
             instruction_type,
             opcode,
             interrupt_key,
+        })
+    }
+}
+
+impl Parser<SCI> for SCI {
+    type Op1 = u8;
+
+    fn parse_instruction(
+        value: &str,
+        opcode: Op,
+        _: Register,
+        _: Register,
+        op1: Self::Op1,
+    ) -> crate::Res<SCI> {
+        let cond = value.parse::<Condition>()?;
+
+        Ok(SCI {
+            cond,
+            instruction_type: ((opcode as u8) >> 4) & 0b111,
+            opcode,
+            interrupt_key: op1,
         })
     }
 }

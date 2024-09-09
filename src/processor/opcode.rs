@@ -9,7 +9,7 @@ use super::{BRI, DPI, LSI, SCI};
 /// BRI = 0b101 = 0x5
 /// SCI = 0b111 = 0x7
 ///
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Codable)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Codable)]
 #[error(crate::error::EsiuxErrorKind)]
 pub enum Instruction {
     #[alias("add", 0x11)]
@@ -41,4 +41,134 @@ pub enum Instruction {
 
     #[alias("svc", 0x71)]
     Svc(SCI),
+}
+
+#[cfg(test)]
+mod test {
+    use crate::{
+        processor::{Condition, Op, Register, DPI},
+        types::{l12, Operand},
+    };
+
+    use super::Instruction;
+
+    #[test]
+    fn op_one() {
+        let ins = "add r1, r0, #1";
+
+        let instruction = ins.parse::<Instruction>().unwrap();
+
+        assert_eq!(
+            instruction,
+            Instruction::Add(DPI {
+                cond: Condition::Al,
+                instruction_type: 0b001,
+                imm: true,
+                opcode: Op::Add,
+                rn: Register::R0,
+                rd: Register::R1,
+                operand: Operand::Imm(l12::new_u(1).unwrap())
+            })
+        );
+    }
+
+    #[test]
+    fn op_two() {
+        let ins = 0b0000_0000_0001_0000_0001_0001_1001_1110;
+
+        let instruction = Instruction::try_from(ins).unwrap();
+
+        assert_eq!(
+            instruction,
+            Instruction::Add(DPI {
+                cond: Condition::Al,
+                instruction_type: 0b001,
+                imm: true,
+                opcode: Op::Add,
+                rn: Register::R0,
+                rd: Register::R1,
+                operand: Operand::Imm(l12::new_u(1).unwrap())
+            })
+        );
+    }
+
+    #[test]
+    fn op_three() {
+        let ins = "add r1, r0, r2";
+
+        let instruction = ins.parse::<Instruction>().unwrap();
+
+        assert_eq!(
+            instruction,
+            Instruction::Add(DPI {
+                cond: Condition::Al,
+                instruction_type: 0b001,
+                imm: false,
+                opcode: Op::Add,
+                rn: Register::R0,
+                rd: Register::R1,
+                operand: Operand::Reg(Register::R2)
+            })
+        );
+    }
+
+    #[test]
+    fn op_four() {
+        let ins = 0b0000_0000_0010_0000_0001_0001_0001_1110;
+
+        let instruction = Instruction::try_from(ins).unwrap();
+
+        assert_eq!(
+            instruction,
+            Instruction::Add(DPI {
+                cond: Condition::Al,
+                instruction_type: 0b001,
+                imm: false,
+                opcode: Op::Add,
+                rn: Register::R0,
+                rd: Register::R1,
+                operand: Operand::Reg(Register::R2),
+            })
+        );
+    }
+
+    #[test]
+    fn op_five() {
+        let ins = "add.eq r1, r0, r2";
+
+        let instruction = ins.parse::<Instruction>().unwrap();
+
+        assert_eq!(
+            instruction,
+            Instruction::Add(DPI {
+                cond: Condition::Eq,
+                instruction_type: 0b001,
+                imm: false,
+                opcode: Op::Add,
+                rn: Register::R0,
+                rd: Register::R1,
+                operand: Operand::Reg(Register::R2)
+            })
+        );
+    }
+
+    #[test]
+    fn op_six() {
+        let ins = 0b0000_0000_0010_0000_0001_0001_0001_0000;
+
+        let instruction = Instruction::try_from(ins).unwrap();
+
+        assert_eq!(
+            instruction,
+            Instruction::Add(DPI {
+                cond: Condition::Eq,
+                instruction_type: 0b001,
+                imm: false,
+                opcode: Op::Add,
+                rn: Register::R0,
+                rd: Register::R1,
+                operand: Operand::Reg(Register::R2),
+            })
+        );
+    }
 }

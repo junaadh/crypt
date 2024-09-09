@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use crate::{error::EsiuxErrorKind, processor::Register, Res};
+use crate::{error::EsiuxErrorKind, parser::Negative, processor::Register, Res};
 
 /// # Literal 12 bit
 ///
@@ -71,6 +71,12 @@ impl FromStr for l12 {
         };
 
         Self::from_str_radix(&s[offset..], base)
+    }
+}
+
+impl Negative for l12 {
+    fn is_negative(&self) -> bool {
+        self.as_signed() <= 0
     }
 }
 
@@ -146,6 +152,12 @@ impl FromStr for l20 {
     }
 }
 
+impl Negative for l20 {
+    fn is_negative(&self) -> bool {
+        self.as_signed() <= 0
+    }
+}
+
 /// # Operand
 ///
 /// * operand enum can be used to represent either a register or 12 bit immediate
@@ -187,5 +199,88 @@ impl FromStr for Operand {
             }
             _ => Err(Self::Err::FromStr(Box::new(s.to_owned()))),
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::types::l20;
+
+    use super::l12;
+
+    #[test]
+    fn l12_one() {
+        let val = -12i16;
+
+        let l12 = l12::new_i(val).unwrap();
+        println!("{l:02x}", l = l12.value);
+
+        assert_eq!(l12.value, 0x0ff4);
+    }
+
+    #[test]
+    fn l12_two() {
+        let val = -16i16;
+
+        let l12 = l12::new_i(val).unwrap();
+        println!("{l:02x}", l = l12.value);
+
+        assert_eq!(l12.value, 0x0ff0);
+    }
+
+    #[test]
+    fn l12_three() {
+        let val = 10u16;
+
+        let l12 = l12::new_u(val).unwrap();
+
+        assert_eq!(l12.value, 0x000a);
+    }
+
+    #[test]
+    fn l12_four() {
+        let val = 16u16;
+
+        let l12 = l12::new_u(val).unwrap();
+
+        assert_eq!(l12.value, 0x0010);
+    }
+
+    #[test]
+    fn l20_one() {
+        let val = -12i32;
+
+        let l20 = l20::new_i(val).unwrap();
+        println!("{l:02x}", l = l20.value);
+
+        assert_eq!(l20.value, 0x0ffff4);
+    }
+
+    #[test]
+    fn l20_two() {
+        let val = -16i32;
+
+        let l20 = l20::new_i(val).unwrap();
+        println!("{l:02x}", l = l20.value);
+
+        assert_eq!(l20.value, 0x0ffff0);
+    }
+
+    #[test]
+    fn l20_three() {
+        let val = 10u32;
+
+        let l20 = l20::new_u(val).unwrap();
+
+        assert_eq!(l20.value, 0x000a);
+    }
+
+    #[test]
+    fn l20_four() {
+        let val = 16u32;
+
+        let l20 = l20::new_u(val).unwrap();
+
+        assert_eq!(l20.value, 0x0010);
     }
 }

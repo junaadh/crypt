@@ -134,6 +134,30 @@ impl std::convert::TryFrom<u8> for Condition {
     }
 }
 
+impl std::str::FromStr for Condition {
+    type Err = crate::error::EsiuxErrorKind;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let s = s.to_lowercase();
+        let s = s.trim();
+
+        macro_rules! match_s {
+            ($s: expr, [$($arg: ident),* $(,)?]) => {{
+                match $s {
+                    $(
+                        x if x.ends_with(stringify!($arg).to_lowercase().as_str()) => Ok(Self::$arg),
+                    )*
+                    _ => Ok(Self::Al),
+                }
+            }};
+        }
+        match_s!(
+            s,
+            [Eq, Ne, Cs, Cc, Mi, Pl, Vs, Vc, Hi, Ls, Ge, Lt, Gt, Le, Al, Nv]
+        )
+    }
+}
+
 /// # CPSR Flags
 ///
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -149,4 +173,36 @@ pub struct CPSRflags {
     /// * Set when the result of an operation causes a signed overflow
     /// * when the result doesn’t fit in the signed range of the number
     pub(crate) v: bool,
+}
+
+#[cfg(test)]
+mod test {
+    use super::Condition;
+
+    #[test]
+    fn condition_one() {
+        let cond = "addeq";
+
+        let condition = cond.parse::<Condition>().unwrap();
+
+        assert_eq!(Condition::Eq, condition);
+    }
+
+    #[test]
+    fn condition_two() {
+        let cond = "add.eq";
+
+        let condition = cond.parse::<Condition>().unwrap();
+
+        assert_eq!(Condition::Eq, condition);
+    }
+
+    #[test]
+    fn condition_three() {
+        let cond = "add";
+
+        let condition = cond.parse::<Condition>().unwrap();
+
+        assert_eq!(Condition::Al, condition);
+    }
 }
