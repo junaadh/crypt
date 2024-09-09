@@ -31,6 +31,7 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
     let mut decode_ = Vec::<proc_macro2::TokenStream>::new();
     let mut parse_ = Vec::<proc_macro2::TokenStream>::new();
     let mut debug_instruction = Vec::<proc_macro2::TokenStream>::new();
+    let mut encode_ = Vec::<proc_macro2::TokenStream>::new();
 
     for variant in data.variants {
         let variant_name = &variant.ident;
@@ -84,6 +85,10 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
             Self::#variant_name(i) => write!(f, "{}", i),
         });
 
+        encode_.push(quote! {
+            Self::#variant_name(i) => i.mask(),
+        });
+
         match types.as_str() {
             "DPI" => {
                 decode_.push(quote! {
@@ -91,16 +96,28 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
                 });
                 parse_.push(quote! {
                     Op::#variant_name => {
-                        if parts.len() < 3 {
+                        if parts.len() < 3 && Op::#variant_name != Op::Mov {
                             return Err(crate::error::EsiuxErrorKind::NotEnoughParts(
                                 Box::new(instruction_parsed),
                                 3,
                             ));
+                        } else if parts.len() < 2 && Op::#variant_name == Op::Mov {
+                            return Err(crate::error::EsiuxErrorKind::NotEnoughParts(
+                                Box::new(instruction_parsed),
+                                2,
+                            ));
                         }
 
                         let rd = parts[0].parse::<crate::processor::Register>()?;
-                        let rn = parts[1].parse::<crate::processor::Register>()?;
-                        let op = parts[2].parse::<crate::types::Operand>()?;
+                        let (op, rn) = if Op::#variant_name != Op::Mov {   
+                            let rn = parts[1].parse::<crate::processor::Register>()?;
+                            let op = parts[2].parse::<crate::types::Operand>()?;
+                            (op, rn)
+                        } else {
+                            let rn = crate::processor::Register::R0;
+                            let op = parts[1].parse::<crate::types::Operand>()?;
+                            (op, rn)
+                        };
 
                         let dpi = instruction.mk_instruction::<crate::processor::DPI>(instruction_parsed, rd, rn, op)?;
 
@@ -182,7 +199,7 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
                 });
                 parse_.push(quote! {
                     Op::#variant_name => {
-                        let int_key = parts[0].parse::<crate::types::l12>()?.value as u8;
+                        let int_key = parts[0][1..].parse::<crate::types::l12>()?.value as u8;
 
                         let sci = instruction.mk_instruction::<crate::processor::SCI>(
                             instruction_parsed,
@@ -254,6 +271,16 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
                 match value {
                     #(#from_u8)*
                     _ => Err(Self::Error::TryFrom(Box::new(format!("Failed to parse {value} to Op")))),
+                }
+            }
+        }
+
+        use crate::parser::ToNum;
+
+        impl ToNum for #name {
+            fn mask(&self) -> u32 {
+                match self {
+                    #(#encode_)*
                 }
             }
         }

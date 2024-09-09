@@ -1,3 +1,7 @@
+use std::fmt;
+
+use crate::parser::ToNum;
+
 /// # Condition Flags
 ///
 /// * 4 bits at the front of each instruction
@@ -141,6 +145,10 @@ impl std::str::FromStr for Condition {
         let s = s.to_lowercase();
         let s = s.trim();
 
+        if s.len() <= 3 {
+            return Ok(Self::Al);
+        }
+
         macro_rules! match_s {
             ($s: expr, [$($arg: ident),* $(,)?]) => {{
                 match $s {
@@ -160,7 +168,7 @@ impl std::str::FromStr for Condition {
 
 /// # CPSR Flags
 ///
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct CPSRflags {
     /// * Set when the result of an operation is negative
     /// * based on the sign bit of the result
@@ -173,6 +181,58 @@ pub struct CPSRflags {
     /// * Set when the result of an operation causes a signed overflow
     /// * when the result doesn’t fit in the signed range of the number
     pub(crate) v: bool,
+}
+
+impl CPSRflags {
+    pub fn validate(&self, cond: Condition) -> bool {
+        match cond {
+            Condition::Eq => self.z,
+            Condition::Ne => !self.z,
+            Condition::Cs => self.c,
+            Condition::Cc => !self.c,
+            Condition::Mi => self.n,
+            Condition::Pl => !self.n,
+            Condition::Vs => self.v,
+            Condition::Vc => !self.v,
+            Condition::Hi => self.c && !self.z,
+            Condition::Ls => !self.c || self.z,
+            Condition::Ge => self.n == self.v,
+            Condition::Lt => self.n != self.v,
+            Condition::Gt => !self.z && self.n == self.v,
+            Condition::Le => self.z || self.n != self.v,
+            Condition::Al => true,
+            Condition::Nv => false,
+        }
+    }
+
+    pub fn set_negative(&mut self, state: bool) {
+        self.n = state;
+    }
+
+    pub fn set_zero(&mut self, state: bool) {
+        self.z = state;
+    }
+
+    pub fn set_carry(&mut self, state: bool) {
+        self.c = state;
+    }
+
+    pub fn set_overflow(&mut self, state: bool) {
+        self.v = state;
+    }
+}
+
+impl fmt::Display for CPSRflags {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "N: {} | Z: {} | C: {} | V: {}",
+            self.n.mask(),
+            self.z.mask(),
+            self.c.mask(),
+            self.v.mask()
+        )
+    }
 }
 
 #[cfg(test)]

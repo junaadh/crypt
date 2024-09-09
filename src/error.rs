@@ -25,6 +25,8 @@ pub enum EsiuxErrorKind {
     Overflow20(u32),
     /// {} requires atleast {} parts
     NotEnoughParts(Box<dyn Display + 'static>, u8),
+    /// Tried to access mem: {:02x} which is out of range: {:032b}
+    MemOutOfBounds(u32),
 }
 
 impl From<ParseIntError> for EsiuxErrorKind {

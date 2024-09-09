@@ -46,7 +46,7 @@ pub enum Instruction {
 #[cfg(test)]
 mod test {
     use crate::{
-        processor::{Condition, Op, Register, DPI},
+        processor::{Condition, Op, Register, DPI, SCI},
         types::{l12, Operand},
     };
 
@@ -168,6 +168,43 @@ mod test {
                 rn: Register::R0,
                 rd: Register::R1,
                 operand: Operand::Reg(Register::R2),
+            })
+        );
+    }
+
+    #[test]
+    fn op_seven() {
+        let ins = "mov r1, #1";
+
+        let instruction = ins.parse::<Instruction>().unwrap();
+
+        assert_eq!(
+            instruction,
+            Instruction::Mov(DPI {
+                cond: Condition::Al,
+                instruction_type: 0b001,
+                imm: true,
+                opcode: Op::Mov,
+                rn: Register::R0,
+                rd: Register::R1,
+                operand: Operand::Imm(l12::new_u(1).unwrap()),
+            })
+        );
+    }
+
+    #[test]
+    fn op_eight() {
+        let ins = "svc #0xf0";
+
+        let instruction = ins.parse::<Instruction>().unwrap();
+
+        assert_eq!(
+            instruction,
+            Instruction::Svc(SCI {
+                cond: Condition::Al,
+                instruction_type: 0b111,
+                opcode: Op::Svc,
+                interrupt_key: 0xf0
             })
         );
     }

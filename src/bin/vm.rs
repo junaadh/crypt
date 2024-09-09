@@ -1,54 +1,43 @@
-fn main() {
-    // let ins = "ldr r0, [r1, #10]";
-    let ins = "ldr r0, [r1]";
-    // let ins = "ldr r0, [r1], #10";
+use esiux_isa::{
+    machine::{halt, Cpu},
+    parser::ToNum,
+    processor::Instruction,
+    Res,
+};
 
-    let (one, part) = ins.split_once(" ").unwrap();
+fn main() -> Res<()> {
+    let mut vm = Cpu::default();
+    vm.define_interrupt(0xf0, halt);
 
-    println!("{one}");
+    vm.load_program(&program()?, 0)?;
 
-    let parts = part.split(",").map(|x| x.trim()).collect::<Vec<_>>();
-    if parts.len() < 2 {
-        panic!("Fuck");
-    }
-    println!("{r}", r = parts.len());
-    let mut index = false;
-    let mut val = 0u16;
+    vm.execute()?;
 
-    let rd = parts[0];
-    let mut rn = &parts[1][1..];
-    // let mut rn = &rn[1..];
-
-    if let Some(r) = parts.get(2) {
-        if !r.ends_with("]") {
-            index = true;
-            rn = &rn[..rn.len() - 1];
-            val = r[1..].parse::<u16>().unwrap();
-        } else {
-            val = r[1..r.len() - 1].parse::<u16>().unwrap();
-        }
-    } else {
-        rn = &rn[..rn.len() - 1];
-    }
-
-    let a = "abc";
-    let b = "abcd";
-    let c = "abcde";
-
-    // println!("rd: {rd}");
-    // println!("post-index: {index}");
-    // println!("rn: {rn}");
-    // println!("offset: {val}");
-
-    println!("{a}", a = shorten(a));
-    println!("{b}", b = shorten(b));
-    println!("{c}", c = shorten(c));
+    Ok(())
 }
 
-fn shorten(s: &str) -> &str {
-    if s.len() > 3 {
-        &s[..3]
-    } else {
-        s
-    }
+fn program() -> Res<Vec<u8>> {
+    let a = "mov r1, #3";
+    let b = "mov r2, #5";
+    let c = "add r0, r1, r2";
+    let d = "svc #0xf0";
+
+    let a = a.parse::<Instruction>()?;
+    let b = b.parse::<Instruction>()?;
+    let c = c.parse::<Instruction>()?;
+    let d = d.parse::<Instruction>()?;
+
+    let mut vec = Vec::new();
+
+    let a = a.mask();
+    let b = b.mask();
+    let c = c.mask();
+    let d = d.mask();
+
+    vec.extend_from_slice(&a.to_le_bytes());
+    vec.extend_from_slice(&b.to_le_bytes());
+    vec.extend_from_slice(&c.to_le_bytes());
+    vec.extend_from_slice(&d.to_le_bytes());
+
+    Ok(vec)
 }

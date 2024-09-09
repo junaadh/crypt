@@ -1,6 +1,8 @@
 #[macro_use]
 mod macros;
 pub mod error;
+pub mod machine;
+pub mod memory;
 pub mod parser;
 pub mod processor;
 pub mod types;
