@@ -62,7 +62,7 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
         let mnumonic = mnumonic.as_str();
 
         from_str.push(quote! {
-            #mnumonic => Ok(Self::#variant_name),
+            x if x.starts_with(#mnumonic) => Ok(Self::#variant_name),
         });
 
         from_u8.push(quote! {
@@ -96,12 +96,14 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
                 });
                 parse_.push(quote! {
                     Op::#variant_name => {
-                        if parts.len() < 3 && Op::#variant_name != Op::Mov {
-                            return Err(crate::error::EsiuxErrorKind::NotEnoughParts(
-                                Box::new(instruction_parsed),
-                                3,
-                            ));
-                        } else if parts.len() < 2 && Op::#variant_name == Op::Mov {
+                        if !(Op::#variant_name == Op::Mov || Op::#variant_name == Op::Cmp) {
+                            if parts.len() < 3 { 
+                                return Err(crate::error::EsiuxErrorKind::NotEnoughParts(
+                                    Box::new(instruction_parsed),
+                                    3,
+                                ));
+                            }
+                        } else if parts.len() < 2 {
                             return Err(crate::error::EsiuxErrorKind::NotEnoughParts(
                                 Box::new(instruction_parsed),
                                 2,
@@ -109,7 +111,7 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
                         }
 
                         let rd = parts[0].parse::<crate::processor::Register>()?;
-                        let (op, rn) = if Op::#variant_name != Op::Mov {   
+                        let (op, rn) = if !(Op::#variant_name == Op::Mov || Op::#variant_name == Op::Cmp) {   
                             let rn = parts[1].parse::<crate::processor::Register>()?;
                             let op = parts[2].parse::<crate::types::Operand>()?;
                             (op, rn)
@@ -180,7 +182,7 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
                             ));
                         }
 
-                        let offset = parts[0].parse::<crate::types::l20>()?;
+                        let offset = parts[0][1..].parse::<crate::types::l20>()?;
 
                         let bri = instruction.mk_instruction::<crate::processor::BRI>(
                             instruction_parsed,
@@ -231,12 +233,6 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
                 let s = s.to_lowercase();
-
-                let s = if s.len() > 3 {
-                    &s[..3]
-                } else {
-                    s.as_str()
-                };
                 
                 match s {
                     #(#from_str)*

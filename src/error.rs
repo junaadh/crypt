@@ -1,4 +1,4 @@
-use std::{fmt::Display, num::ParseIntError};
+use std::{fmt::Display, io, num::ParseIntError};
 
 use emacro::Error;
 
@@ -27,10 +27,18 @@ pub enum EsiuxErrorKind {
     NotEnoughParts(Box<dyn Display + 'static>, u8),
     /// Tried to access mem: {:02x} which is out of range: {:032b}
     MemOutOfBounds(u32),
+    /// Failed to access i/o: {}
+    Io(io::Error),
 }
 
 impl From<ParseIntError> for EsiuxErrorKind {
     fn from(value: ParseIntError) -> Self {
         Self::ParseInt(Box::new(value))
+    }
+}
+
+impl From<io::Error> for EsiuxErrorKind {
+    fn from(value: io::Error) -> Self {
+        Self::Io(value)
     }
 }

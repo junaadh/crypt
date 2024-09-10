@@ -228,7 +228,12 @@ pub struct BRI {
 
 impl fmt::Display for BRI {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}  {}", self.opcode, self.offset)
+        let cond = self.cond;
+        if cond == Condition::Al {
+            write!(f, "{}  {}", self.opcode, self.offset)
+        } else {
+            write!(f, "{}.{cond}  {}", self.opcode, self.offset)
+        }
     }
 }
 
@@ -294,7 +299,11 @@ pub struct SCI {
 
 impl fmt::Display for SCI {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}  {}", self.instruction_type, self.interrupt_key)
+        write!(
+            f,
+            "{}  {}\t ; 0x{:02x}",
+            self.opcode, self.interrupt_key, self.interrupt_key
+        )
     }
 }
 

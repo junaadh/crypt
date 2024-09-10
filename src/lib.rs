@@ -1,5 +1,6 @@
 #[macro_use]
 mod macros;
+pub mod assembly;
 pub mod error;
 pub mod machine;
 pub mod memory;

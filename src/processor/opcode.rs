@@ -30,6 +30,8 @@ pub enum Instruction {
     Lsl(DPI),
     #[alias("lsr", 0x19)]
     Lsr(DPI),
+    #[alias("cmp", 0x1a)]
+    Cmp(DPI),
 
     #[alias("ldr", 0x30)]
     Ldr(LSI),
@@ -46,8 +48,8 @@ pub enum Instruction {
 #[cfg(test)]
 mod test {
     use crate::{
-        processor::{Condition, Op, Register, DPI, SCI},
-        types::{l12, Operand},
+        processor::{Condition, Op, Register, BRI, DPI, SCI},
+        types::{l12, l20, Operand},
     };
 
     use super::Instruction;
@@ -205,6 +207,43 @@ mod test {
                 instruction_type: 0b111,
                 opcode: Op::Svc,
                 interrupt_key: 0xf0
+            })
+        );
+    }
+
+    #[test]
+    fn op_nine() {
+        let ins = "b #-4";
+
+        let instruction = ins.parse::<Instruction>().unwrap();
+
+        assert_eq!(
+            instruction,
+            Instruction::Branch(BRI {
+                cond: Condition::Al,
+                instruction_type: 0b101,
+                opcode: Op::Branch,
+                offset: l20::new_i(-4).unwrap()
+            })
+        );
+    }
+
+    #[test]
+    fn op_ten() {
+        let ins = "cmp r1, #0";
+
+        let instruction = ins.parse::<Instruction>().unwrap();
+
+        assert_eq!(
+            instruction,
+            Instruction::Cmp(DPI {
+                cond: Condition::Al,
+                instruction_type: 0b001,
+                imm: true,
+                opcode: Op::Cmp,
+                rn: Register::R0,
+                rd: Register::R1,
+                operand: Operand::Imm(l12 { value: 0u16 })
             })
         );
     }

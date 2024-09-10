@@ -112,6 +112,24 @@ pub enum Condition {
     Nv,
 }
 
+impl std::fmt::Display for Condition {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        macro_rules! printer {
+            ($v: expr, [ $($kind: ident),* $(,)?]) => {{
+                match $v {
+                    $(
+                        Self::$kind => write!(f, "{}", stringify!($kind).to_lowercase()),
+                    )*
+                }
+            }};
+        }
+        printer!(
+            self,
+            [Eq, Ne, Cs, Cc, Mi, Pl, Vs, Vc, Hi, Ls, Ge, Lt, Gt, Le, Al, Nv]
+        )
+    }
+}
+
 impl std::convert::TryFrom<u8> for Condition {
     type Error = crate::error::EsiuxErrorKind;
 
@@ -145,7 +163,7 @@ impl std::str::FromStr for Condition {
         let s = s.to_lowercase();
         let s = s.trim();
 
-        if s.len() <= 3 {
+        if s == "svc" {
             return Ok(Self::Al);
         }
 

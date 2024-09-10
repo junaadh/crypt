@@ -1,43 +1,37 @@
+use std::{
+    env, fs,
+    io::{self, Read},
+    process,
+};
+
 use esiux_isa::{
-    machine::{halt, Cpu},
-    parser::ToNum,
-    processor::Instruction,
+    machine::{halt, print, Cpu},
     Res,
 };
 
 fn main() -> Res<()> {
+    let args = env::args().collect::<Vec<_>>();
+
+    if args.len() < 2 {
+        println!("Usage:\n\t{} <file_.bin>", args[0]);
+        process::exit(1);
+    }
+
+    let mut readable: Box<dyn Read> = match args[1].as_str() {
+        "-" => Box::new(io::stdin()),
+        x => Box::new(fs::File::open(x)?),
+    };
+
     let mut vm = Cpu::default();
     vm.define_interrupt(0xf0, halt);
+    vm.define_interrupt(0xe0, print);
 
-    vm.load_program(&program()?, 0)?;
+    let mut program = Vec::<u8>::new();
+    readable.read_to_end(&mut program)?;
+
+    vm.load_program(&program, 0)?;
 
     vm.execute()?;
 
     Ok(())
-}
-
-fn program() -> Res<Vec<u8>> {
-    let a = "mov r1, #3";
-    let b = "mov r2, #5";
-    let c = "add r0, r1, r2";
-    let d = "svc #0xf0";
-
-    let a = a.parse::<Instruction>()?;
-    let b = b.parse::<Instruction>()?;
-    let c = c.parse::<Instruction>()?;
-    let d = d.parse::<Instruction>()?;
-
-    let mut vec = Vec::new();
-
-    let a = a.mask();
-    let b = b.mask();
-    let c = c.mask();
-    let d = d.mask();
-
-    vec.extend_from_slice(&a.to_le_bytes());
-    vec.extend_from_slice(&b.to_le_bytes());
-    vec.extend_from_slice(&c.to_le_bytes());
-    vec.extend_from_slice(&d.to_le_bytes());
-
-    Ok(vec)
 }

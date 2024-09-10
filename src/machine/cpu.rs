@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
     memory::{Addressable, LineMem},
-    processor::{CPSRflags, Condition, Instruction, Register, DPI, LSI, SCI},
+    processor::{CPSRflags, Instruction, Register, BRI, DPI, SCI},
     types::Operand,
     Res,
 };
@@ -52,7 +52,7 @@ impl Cpu {
         new
     }
 
-    pub(crate) fn reset(&mut self) {
+    pub fn reset(&mut self) {
         self.core.registers = Default::default();
         self.core.memory = Box::new(LineMem::new(0x1000));
         self.core.state = false;
@@ -85,9 +85,11 @@ impl Cpu {
 
     pub fn execute(&mut self) -> Res<()> {
         self.core.state = true;
-        while self.core.state {
+        while self.is_halted() {
             self.step()?;
-            self.dump();
+            if cfg!(debug_assertions) {
+                self.dump();
+            }
         }
         Ok(())
     }
@@ -142,6 +144,40 @@ impl Cpu {
 
                 Ok(())
             }
+            Instruction::Cmp(DPI {
+                cond, rd, operand, ..
+            }) => {
+                if !self.core.flags.validate(cond) {
+                    return Ok(());
+                }
+
+                let rd_value = self.register(rd, |x| x);
+                let rn_value = match operand {
+                    Operand::Reg(r) => self.register(r, |x| x),
+                    Operand::Imm(i) => i.value as u32,
+                };
+
+                let res = rd_value.wrapping_sub(rn_value);
+
+                self.core.flags.set_negative(res >> 31 == 1);
+                self.core.flags.set_zero(res == 0);
+                self.core.flags.set_carry(rd_value >= rn_value);
+                self.core.flags.set_overflow(
+                    (rn_value >> 31 == rd_value >> 31) && (res >> 31 != rd_value >> 31),
+                );
+
+                Ok(())
+            }
+            Instruction::Branch(BRI { cond, offset, .. }) => {
+                if !self.core.flags.validate(cond) {
+                    return Ok(());
+                }
+
+                let offset = offset.value;
+                self.register(Register::PC, |_| offset);
+
+                Ok(())
+            }
             Instruction::Svc(SCI {
                 cond,
                 interrupt_key,
@@ -151,8 +187,10 @@ impl Cpu {
                     return Ok(());
                 }
 
+                let arg = self.register(Register::R8, |x| x);
+
                 let int = self.interrupt_table.get(&interrupt_key).unwrap();
-                int.handle(&mut self.core, 0)?;
+                int.handle(&mut self.core, arg)?;
 
                 Ok(())
             }

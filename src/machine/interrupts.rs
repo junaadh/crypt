@@ -22,3 +22,8 @@ pub fn halt(vm: &mut CpuCore, args: u32) -> Res<()> {
     println!("vm execution halted with sig: {args:02x}");
     Ok(())
 }
+
+pub fn print(_: &mut CpuCore, args: u32) -> Res<()> {
+    println!("0x{args:02x}\t: {args}; {args:032b}");
+    Ok(())
+}

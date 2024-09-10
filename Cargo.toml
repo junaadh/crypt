@@ -14,5 +14,9 @@ path = "src/lib.rs"
 name = "esiux_vm"
 path = "src/bin/vm.rs"
 
+[[bin]]
+name = "esiux_asm"
+path = "src/bin/asm.rs"
+
 [workspace]
 members = ["emacro"]
