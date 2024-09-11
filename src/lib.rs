@@ -2,6 +2,7 @@
 mod macros;
 pub mod assembly;
 pub mod error;
+pub mod format;
 pub mod machine;
 pub mod memory;
 pub mod parser;
