@@ -1,0 +1,7 @@
+[package]
+name = "eparser"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+emacro = { version = "0.1.0", path = "../emacro" }

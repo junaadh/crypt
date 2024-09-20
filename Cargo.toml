@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 emacro = { version = "0.1.0", path = "emacro" }
+eparser = { version = "0.1.0", path = "eparser" }
 
 [lib]
 name = "esiux_isa"
@@ -19,4 +20,4 @@ name = "esiux_asm"
 path = "src/bin/asm.rs"
 
 [workspace]
-members = ["emacro"]
+members = ["emacro", "eparser"]

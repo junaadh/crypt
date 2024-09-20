@@ -1,4 +1,7 @@
-use crate::processor::{Op, Register};
+use crate::{
+    processor::{Op, Register},
+    Res,
+};
 
 pub trait ToNum {
     fn mask(&self) -> u32;
@@ -50,4 +53,22 @@ impl ToNum for bool {
             0
         }
     }
+}
+
+pub trait FromSlice<S>: Sized {
+    fn from_slice(slice: &[u8]) -> Res<S>;
+}
+
+pub trait Sliced {
+    fn as_bytes<S: FromSlice<S>>(&self) -> Res<S>;
+}
+
+impl Sliced for [u8] {
+    fn as_bytes<S: FromSlice<S>>(&self) -> Res<S> {
+        S::from_slice(self)
+    }
+}
+
+pub trait IntoSlice: Sized {
+    fn to_slice(&self) -> Res<Vec<u8>>;
 }

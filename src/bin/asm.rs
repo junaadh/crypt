@@ -1,13 +1,6 @@
-use std::{
-    env, fs,
-    io::{Read, Write},
-    process,
-};
+use std::{env, fs, io::Read, process};
 
-use esiux_isa::{
-    assembly::{Assembler, PreProcessor},
-    Res,
-};
+use esiux_isa::{assembly::PreProcessor, Res};
 
 fn main() -> Res<()> {
     let args = env::args().collect::<Vec<_>>();
@@ -27,11 +20,12 @@ fn main() -> Res<()> {
     let mut f = fs::File::open(&args[1])?;
     f.read_to_string(&mut buf)?;
 
-    let mut pp = PreProcessor::new(buf);
+    let mut pp = PreProcessor::new(buf.as_str());
 
-    pp.first_pass()?;
+    pp.handle()?;
+    // println!("{pp:#?}");
 
-    println!("{pp:#?}");
+    // stdout().write_all(&slice)?;
 
     Ok(())
 }

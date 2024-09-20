@@ -7,7 +7,7 @@ pub enum Section {
     Text,
     Rodata,
     Bss,
-    Comment,
+    // Comment,
 }
 
 impl FromStr for Section {
@@ -19,7 +19,7 @@ impl FromStr for Section {
             "text" => Ok(Self::Text),
             "rodata" => Ok(Self::Rodata),
             "bss" => Ok(Self::Bss),
-            "comment" => Ok(Self::Comment),
+            // "comment" => Ok(Self::Comment),
             _ => Err(crate::error::EsiuxErrorKind::FromStr(Box::new(
                 "failed to parse segment: {s}",
             ))),
@@ -36,10 +36,27 @@ impl TryFrom<u32> for Section {
             1 => Ok(Self::Text),
             2 => Ok(Self::Rodata),
             3 => Ok(Self::Bss),
-            4 => Ok(Self::Comment),
-            _ => Err(crate::error::EsiuxErrorKind::TryFrom(Box::new(
-                "failed to match segment: {value}",
-            ))),
+            // 4 => Ok(Self::Comment),
+            _ => Err(crate::error::EsiuxErrorKind::TryFrom(Box::new(format!(
+                "failed to match segment: {value}"
+            )))),
+        }
+    }
+}
+
+impl TryFrom<u16> for Section {
+    type Error = crate::error::EsiuxErrorKind;
+
+    fn try_from(value: u16) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(Self::Data),
+            1 => Ok(Self::Text),
+            2 => Ok(Self::Rodata),
+            3 => Ok(Self::Bss),
+            // 4 => Ok(Self::Comment),
+            _ => Err(crate::error::EsiuxErrorKind::TryFrom(Box::new(format!(
+                "failed to match segment: {value}"
+            )))),
         }
     }
 }

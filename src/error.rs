@@ -1,6 +1,7 @@
 use std::{fmt::Display, io, num::ParseIntError};
 
 use emacro::Error;
+use eparser::error::ParserErrorKind;
 
 /// # EsiuxErrorKind
 ///
@@ -29,6 +30,20 @@ pub enum EsiuxErrorKind {
     MemOutOfBounds(u32),
     /// Failed to access i/o: {}
     Io(io::Error),
+    /// Binary file does not contain any raw data
+    EmptyBin,
+    /// Invalod {}, expected: {}, found {}
+    Invalid(String, usize, usize),
+    /// No arguments provided for macro definition
+    DefineMacro,
+    /// Unrecognized token: {}
+    UnknownToken(Box<dyn Display>),
+    /// Invalid macro format - {}
+    Format(Box<dyn Display>),
+    /// {}
+    Lexer(ParserErrorKind),
+    /// Unknown symbol: {} at line {}:{}
+    UnknownSymbol(char, usize, usize),
 }
 
 impl From<ParseIntError> for EsiuxErrorKind {
@@ -40,5 +55,11 @@ impl From<ParseIntError> for EsiuxErrorKind {
 impl From<io::Error> for EsiuxErrorKind {
     fn from(value: io::Error) -> Self {
         Self::Io(value)
+    }
+}
+
+impl From<ParserErrorKind> for EsiuxErrorKind {
+    fn from(value: ParserErrorKind) -> Self {
+        Self::Lexer(value)
     }
 }

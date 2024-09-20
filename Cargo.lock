@@ -12,10 +12,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "eparser"
+version = "0.1.0"
+dependencies = [
+ "emacro",
+]
+
+[[package]]
 name = "esiux"
 version = "0.1.0"
 dependencies = [
  "emacro",
+ "eparser",
 ]
 
 [[package]]

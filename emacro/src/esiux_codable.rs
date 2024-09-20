@@ -33,6 +33,8 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
     let mut debug_instruction = Vec::<proc_macro2::TokenStream>::new();
     let mut encode_ = Vec::<proc_macro2::TokenStream>::new();
 
+    let mut all_op = String::new();
+
     for variant in data.variants {
         let variant_name = &variant.ident;
 
@@ -61,6 +63,8 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
         let Alias { mnumonic, number } = alias.unwrap();
         let mnumonic = mnumonic.as_str();
 
+        all_op.push_str(mnumonic);
+
         from_str.push(quote! {
             x if x.starts_with(#mnumonic) => Ok(Self::#variant_name),
         });
@@ -84,6 +88,7 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
         debug_instruction.push(quote! {
             Self::#variant_name(i) => write!(f, "{}", i),
         });
+
 
         encode_.push(quote! {
             Self::#variant_name(i) => i.mask(),
@@ -221,6 +226,10 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
     quote! {
         use #path;
         use crate::parser::ParserImpl;
+
+        pub fn get_all_op() -> String {
+            #all_op.to_owned()
+        }
 
         #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
         #[repr(u8)]
