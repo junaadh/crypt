@@ -87,14 +87,13 @@ impl<'a> Lexer<'a> {
 
     pub fn match_str(&mut self, str: &str) -> bool {
         let str_len = str.len();
-        let start_pos = self.pos();
-        let offset = start_pos + str_len;
 
-        if offset > self.len {
+        let chars = self.chars.as_str();
+        if chars.len() < str_len {
             return false;
         }
 
-        if str == &self.chars.as_str()[start_pos..offset] {
+        if str == &chars[..str_len] {
             for _ in str.chars() {
                 self.advance();
             }

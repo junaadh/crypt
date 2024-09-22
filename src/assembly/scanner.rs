@@ -1,4 +1,5 @@
 use core::panic;
+use std::{collections::HashMap, intrinsics::volatile_store};
 
 use eparser::lexer::Lexer;
 
@@ -10,6 +11,9 @@ use super::{Symbol, SymbolStream, Token};
 pub struct Scanner<'a> {
     lexer: Lexer<'a>,
     source: &'a str,
+    in_macro: bool,
+    offset: usize,
+    map: HashMap<&'a str, usize>,
 }
 
 impl<'a> Scanner<'a> {
@@ -17,6 +21,9 @@ impl<'a> Scanner<'a> {
         Self {
             lexer: Lexer::new(content),
             source: content,
+            in_macro: false,
+            offset: 0,
+            map: HashMap::new(),
         }
     }
 
@@ -32,25 +39,36 @@ impl<'a> Scanner<'a> {
         let end = self.lexer.pos();
 
         let str = &self.source[start..end];
-        Token::from_str(str.trim_start_matches("."), start, self.lexer.line)
+        Token::from_str(str.trim_start_matches("."), start, self.lexer.line, None)
     }
 
-    fn whitespace(&mut self) {
+    fn pc_token(&self) -> Token<'a> {
+        let start = self.lexer.token_start;
+        let end = self.lexer.pos();
+
+        let str = &self.source[start..end];
+        Token::from_str(
+            str.trim_start_matches("."),
+            start,
+            self.lexer.line,
+            Some(self.offset),
+        )
+    }
+
+    fn whitespace(&mut self) -> Symbol<'a> {
         self.lexer
-            .advance_while(|x| matches!(x, ' ' | '\t' | '\n' | '\r'))
+            .advance_while(|x| matches!(x, ' ' | '\t' | '\n' | '\r'));
+        Symbol::Whitespace(self.token())
     }
 
-    fn whitespace_noln(&mut self) {
-        self.lexer.advance_while(|x| matches!(x, ' ' | '\t' | '\r'))
+    fn whitespace_noln(&mut self) -> Symbol<'a> {
+        self.lexer.advance_while(|x| matches!(x, ' ' | '\t' | '\r'));
+        Symbol::Whitespace(self.token())
     }
 
     fn label(&mut self) -> SymbolStream<'a> {
-        let mut st = SymbolStream(vec![Symbol::Label(Token::from_str(
-            self.content(),
-            self.lexer.token_start,
-            self.lexer.line,
-        ))]);
-        if self.lexer.peek().map(|x| x == ':').expect("Non null") {
+        let mut st = SymbolStream(vec![Symbol::Label(self.pc_token())], 0);
+        if self.lexer.peek().map(|x| x == ':').unwrap_or_default() {
             self.lexer.reset_ptr();
             st.push(self.punctuation(':'))
         }
@@ -62,50 +80,90 @@ impl<'a> Scanner<'a> {
             self.lexer.advance_word();
             self.token()
         };
-
-        if macro_name.lexeme == "macro" {
-            self.lexer.advance_untill(".endm");
-        } else {
-            self.lexer.advance_line();
-        }
-        let len = self.lexer.pos();
-        let body = &self.source[self.lexer.token_start..len];
+        let white1 = self.whitespace();
+        self.lexer.reset_ptr();
 
         let mut macro_body = Vec::new();
 
-        for sym in Self::new(body).tokenize() {
-            macro_body.extend_from_slice(&Vec::from(sym))
+        let name = if macro_name.lexeme == "macro" {
+            self.lexer.advance_word();
+            let decl = self.content();
+            let decl_name = { Symbol::Ident(self.token()) };
+            macro_body.push(decl_name);
+            macro_body.push(white1);
+            self.whitespace_noln();
+            self.lexer.reset_ptr();
+            self.lexer.advance_untill(".endm");
+            decl
+        } else {
+            self.lexer.advance_line();
+            ""
+        };
+        let len = self.lexer.pos();
+        let body = &self.source[self.lexer.token_start..len];
+
+        let mut pc = 0;
+        for sym in {
+            let mut scanner = Self::new(body);
+            scanner.in_macro = true;
+            scanner.tokenize_pc()
+        } {
+            if sym.0.is_empty() {
+                pc = sym.1;
+                break;
+            }
+            macro_body.extend_from_slice(&sym.0)
         }
+
+        self.map.insert(name, pc); //.expect("Expected valid pc");
 
         Symbol::Directive(macro_name, macro_body)
     }
 
     fn macro_sub(&mut self) -> Symbol<'a> {
-        // Symbol::Macros(macro_name, params)
-        todo!()
-    }
+        let token = self.token();
 
-    fn literal(&mut self) -> Symbol<'a> {
-        while !self.lexer.is_eof() {
-            let x = self.lexer.peek();
-            match x {
-                Some('0'..='9' | 'a'..='f' | 'A'..='F' | 'x') => {
-                    self.lexer.advance();
-                    continue;
+        let mut st = SymbolStream::default();
+
+        while self.lexer.peek().map(|x| x != '\n').unwrap() {
+            self.whitespace_noln();
+            self.lexer.reset_ptr();
+
+            let op1 = match self.lexer.advance() {
+                Some('r') => {
+                    self.lexer.advance_word();
+                    Symbol::Register(self.token())
                 }
-                _ => break,
-            }
+                Some('#') => {
+                    self.lexer.advance_word();
+                    Symbol::Literal(self.token())
+                }
+                Some('\\') => {
+                    self.lexer.advance_word();
+                    Symbol::Param(self.token())
+                }
+                x => panic!(
+                    "Unexpected end of file: line {}: '{:?}'",
+                    self.lexer.line, x
+                ),
+            };
+            st.push(op1);
         }
 
-        Symbol::Literal(self.token())
-    }
+        let pc_inc = self
+            .map
+            .get(token.lexeme)
+            .expect("Expected the offset increment");
+        self.offset += pc_inc;
 
-    fn register(&mut self) -> Symbol<'a> {
-        Symbol::Register(self.token())
+        // println!("{:?}", self.lexer.peek());
+        // println!("{token:?}");
+        // println!("{st:?}");
+        Symbol::Macros(token, st.0)
     }
 
     fn instruction(&mut self) -> SymbolStream<'a> {
-        let instruction = self.token();
+        let instruction = self.pc_token();
         self.whitespace_noln();
         self.lexer.reset_ptr();
         // println!("{:?}", self.lexer.peek());
@@ -120,6 +178,10 @@ impl<'a> Scanner<'a> {
             Some('#') => {
                 self.lexer.advance_word();
                 Symbol::Literal(self.token())
+            }
+            Some('\\') => {
+                self.lexer.advance_word();
+                Symbol::Param(self.token())
             }
             Some(_) if instruction.lexeme.starts_with("b") => {
                 self.lexer.advance_word();
@@ -153,6 +215,10 @@ impl<'a> Scanner<'a> {
                     self.lexer.advance_word();
                     Symbol::Literal(self.token())
                 }
+                Some('\\') => {
+                    self.lexer.advance_word();
+                    Symbol::Param(self.token())
+                }
                 x => panic!(
                     "Unexpected end of file: line {}: '{:?}'",
                     self.lexer.line, x
@@ -176,6 +242,10 @@ impl<'a> Scanner<'a> {
                             self.lexer.advance_word();
                             Symbol::Literal(self.token())
                         }
+                        Some('\\') => {
+                            self.lexer.advance_word();
+                            Symbol::Param(self.token())
+                        }
                         x => panic!(
                             "Unexpected end of file: line {}: '{:?}'",
                             self.lexer.line, x
@@ -192,6 +262,7 @@ impl<'a> Scanner<'a> {
             st.extend(stream);
         }
 
+        self.offset += 4;
         st
     }
 
@@ -219,7 +290,8 @@ impl<'a> Scanner<'a> {
             ';' => self.comment(),
             '.' => {
                 if self.lexer.match_str("endm") {
-                    Symbol::Marker.into()
+                    self.lexer.advance_word();
+                    Symbol::Marker(self.token()).into()
                 } else {
                     self.directive().into()
                 }
@@ -231,23 +303,29 @@ impl<'a> Scanner<'a> {
             'a'..='z' | 'A'..='Z' | '0'..='9' | '_' => {
                 self.lexer.advance_word();
                 let word = self.content();
-                let kw = get_all_op();
+                let kw = get_all_op().to_lowercase();
                 let kword = if word.contains(".") {
                     word.split_once(".").unwrap().0
                 } else {
                     word
                 };
-                if kw.contains(kword) {
+                if kw.contains(kword.to_lowercase().as_str()) {
                     self.instruction()
                 } else if word.contains("_")
-                    || self.lexer.peek().map(|x| x == ':').expect("Label end?")
+                    || self.lexer.peek().map(|x| x == ':').unwrap_or_default()
                 {
                     self.label()
+                } else if self.in_macro {
+                    self.lexer.advance_word();
+                    Symbol::Ident(self.token()).into()
                 } else {
                     self.macro_sub().into()
                 }
             }
-            _ => todo!("match c =>{c}"), //| {self:?}"),
+            _ => todo!(
+                "Unexpected character '{c}' encounter at line: {}",
+                self.lexer.line
+            ), //| {self:?}"),
         }
     }
 
@@ -256,6 +334,17 @@ impl<'a> Scanner<'a> {
             let token = self.advance();
             if token.0.contains(&Symbol::Eof) {
                 None
+            } else {
+                Some(token)
+            }
+        })
+    }
+
+    pub fn tokenize_pc(mut self) -> impl Iterator<Item = SymbolStream<'a>> {
+        std::iter::from_fn(move || {
+            let token = self.advance();
+            if token.0.contains(&Symbol::Eof) {
+                Some(SymbolStream(Vec::new(), self.offset))
             } else {
                 Some(token)
             }

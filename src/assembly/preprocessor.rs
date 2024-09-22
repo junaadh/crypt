@@ -35,15 +35,6 @@ impl<'a> PreProcessor<'a> {
         self.macros.insert(name, Macros::Substitution(value));
     }
 
-    pub fn content(&self) -> &str {
-        // let len = self.lex.pos();
-        // self.source
-        // .get(self.lex.token_start..len)
-        // .ok_or(ParserErrorKind::Eof)
-        // .unwrap()
-        todo!()
-    }
-
     fn handle_macro(&mut self) -> Symbol<'_> {
         // self.lex.advance_while(|x| x.is_alphabetic());
         // let macro_name = self.content().to_string();
@@ -112,22 +103,6 @@ impl<'a> PreProcessor<'a> {
         todo!()
     }
 
-    pub fn token(&mut self) -> Token<'_> {
-        // let lexeme = self.content();
-        // let offset = self.lex.token_start;
-        // let line = self.lex.line;
-
-        // Token::from_str(lexeme, offset, line)
-        todo!()
-    }
-
-    pub fn comment(&mut self) -> Symbol<'_> {
-        // self.lex.advance_while(|x| x != '\n');
-
-        // Symbol::Comment(self.token())
-        todo!()
-    }
-
     // pub fn tokenize(&'a mut self) -> impl Iterator<Item = Symbol> + 'a {
     //     std::iter::from_fn(|| {
     //         let tokens = self.advance_token();
@@ -139,41 +114,15 @@ impl<'a> PreProcessor<'a> {
     //     })
     // }
 
-    pub fn is_eof(&self) -> bool {
-        // self.lex.is_eof()
-        true
-    }
-
     pub fn handle(&'a mut self) -> Res<()> {
-        for s in Scanner::new(self.source).tokenize() {
-            println!("s: {s:#?}");
+        for sym in Scanner::new(self.source).tokenize() {
+            println!("{sym:#?}");
+            //     match sym.0 {
+            //         Symbol::Label(Token { lexeme, offset, len, line, pc })
+            //         _ => todo!("wip: {sym:?}"),
+            //     }
         }
 
         Ok(())
-    }
-
-    pub fn advance_token(&mut self) -> Symbol<'_> {
-        // self.lex.advance_while(|x| x.is_whitespace());
-        // self.lex.token_start = self.lex.pos();
-
-        // let c = match self.lex.advance() {
-        //     Some(c) => c,
-        //     None => return Symbol::Eof,
-        // };
-        let c = 'x';
-
-        match c {
-            '.' => self.handle_macro(),
-            ';' => self.comment(),
-            x if x.is_alphabetic() => {
-                // self.lex.advance_while(|x| x != ' ');
-                self.handle_macro()
-                // todo!()
-            }
-            _ => panic!(
-                // "{}",
-                // EsiuxErrorKind::UnknownSymbol(c, self.lex.line, self.lex.pos())
-            ),
-        }
     }
 }

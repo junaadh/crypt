@@ -33,7 +33,7 @@ impl SegmentHeader {
 
 impl FromSlice<SegmentHeader> for SegmentHeader {
     fn from_slice(slice: &[u8]) -> crate::Res<SegmentHeader> {
-        if slice.len() > 8 {
+        if slice.len() != 8 {
             return Err(crate::error::EsiuxErrorKind::Invalid(
                 "Segment header length".to_string(),
                 8,

@@ -1,22 +1,60 @@
+use std::fmt;
+
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Symbol<'a> {
     Label(Token<'a>),
     Directive(Token<'a>, Vec<Symbol<'a>>),
     Macros(Token<'a>, Vec<Symbol<'a>>),
+    Ident(Token<'a>),
     Instruction(Token<'a>),
     Literal(Token<'a>),
     Register(Token<'a>),
     Punct(Token<'a>),
     Param(Token<'a>),
+    Whitespace(Token<'a>),
     // special cases like .endm
-    Marker,
+    Marker(Token<'a>),
     // For reconstruction purpose
     Comment(Token<'a>),
     Eof,
 }
 
+impl fmt::Display for Symbol<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Symbol::Label(Token {
+                lexeme,
+                pc: Some(offset),
+                ..
+            }) => {
+                write!(f, "{offset}\t; {lexeme}")
+            }
+            Symbol::Ident(token) => write!(f, "\t{}", token.lexeme),
+            Symbol::Instruction(token) => write!(
+                f,
+                "{}",
+                if token.lexeme.starts_with("b") {
+                    format!("\t{}\t", token.lexeme)
+                } else {
+                    format!("\t{}", token.lexeme)
+                }
+            ),
+            Symbol::Literal(token) => write!(f, "\t#{}", token.lexeme.trim_start_matches("#")),
+            Symbol::Register(token) => write!(f, "\t{}", token.lexeme),
+            Symbol::Punct(token) => write!(f, "{}", token.lexeme),
+            Symbol::Param(token) => write!(f, "\\{}", token.lexeme),
+            Symbol::Marker(token) => write!(f, ".{}", token.lexeme.trim_start_matches(".")),
+            Symbol::Comment(token) => {
+                write!(f, "; {}", token.lexeme.trim_start_matches(";").trim_start())
+            }
+            Symbol::Eof => write!(f, "\\eof"),
+            _ => todo!("{self:?}"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default)]
-pub struct SymbolStream<'a>(pub Vec<Symbol<'a>>);
+pub struct SymbolStream<'a>(pub Vec<Symbol<'a>>, pub usize);
 
 impl<'a> SymbolStream<'a> {
     pub fn push(&mut self, sym: Symbol<'a>) {
@@ -41,7 +79,7 @@ impl<'a> SymbolStream<'a> {
 
 impl<'a> From<Symbol<'a>> for SymbolStream<'a> {
     fn from(value: Symbol<'a>) -> Self {
-        Self(vec![value])
+        Self(vec![value], 0)
     }
 }
 
@@ -51,30 +89,149 @@ impl<'a> From<SymbolStream<'a>> for Vec<Symbol<'a>> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct Token<'a> {
     pub lexeme: &'a str,
     pub offset: usize,
     pub len: usize,
     pub line: usize,
+    pub pc: Option<usize>,
 }
 
 impl<'a> Token<'a> {
-    pub fn new(content: &'a str, offset: usize, len: usize, line: usize) -> Token<'a> {
+    pub fn new(
+        content: &'a str,
+        offset: usize,
+        len: usize,
+        line: usize,
+        pc: Option<usize>,
+    ) -> Token<'a> {
         Self {
             lexeme: content,
             offset,
             len,
             line,
+            pc,
         }
     }
 
-    pub fn from_str(content: &'a str, offset: usize, line: usize) -> Token<'a> {
+    pub fn from_str(content: &'a str, offset: usize, line: usize, pc: Option<usize>) -> Token<'a> {
         Self {
             lexeme: content,
             offset,
             len: content.len(),
             line,
+            pc,
         }
+    }
+
+    pub fn from(lexeme: &'a str) -> Self {
+        Self {
+            lexeme,
+            ..Default::default()
+        }
+    }
+}
+
+#[macro_export]
+macro_rules! sym {
+    (# $tt: expr) => {{
+        use $crate::assembly::{Symbol as S, Token as T};
+        S::Literal(T::from($tt))
+    }};
+
+    (reg $tt: expr) => {{
+        use $crate::assembly::{Symbol as S, Token as T};
+        S::Register(T::from($tt))
+    }};
+
+    (op $tt: expr) => {{
+        use $crate::assembly::{Symbol as S, Token as T};
+        S::Instruction(T::from($tt))
+    }};
+
+    (; $tt: expr) => {{
+        use $crate::assembly::{Symbol as S, Token as T};
+        S::Comment(T::from($tt))
+    }};
+
+    (;; $tt: tt) => {{
+        use $crate::assembly::{Symbol as S, Token as T};
+        S::Punct(T::from($tt))
+    }};
+
+    (@sort $stream: expr, $tt: expr) => {{
+        $stream.push(match &$tt[..1] {
+            "#" => sym!(# $tt),
+            "r" | "R" => sym!(reg $tt),
+            ";" => sym!(; $tt),
+            ":" | "," => sym!(;; $tt),
+            _ => sym!(op $tt),
+        })
+    }};
+
+    ($($tt: expr),* $(,)?) => {{
+        let mut stream = $crate::assembly::SymbolStream::default();
+        $(
+            sym!(@sort stream, $tt);
+        )*
+        stream
+    }};
+}
+
+#[cfg(test)]
+mod test {
+    use crate::assembly::{Symbol, SymbolStream};
+
+    use super::Token;
+
+    #[test]
+    fn sym_one() {
+        let sym = sym!(# "#20");
+        let ctrl = Symbol::Literal(Token::from("#20"));
+
+        assert_eq!(sym, ctrl);
+    }
+
+    #[test]
+    fn sym_two() {
+        let sym = sym!(reg "R1");
+        let ctrl = Symbol::Register(Token::from("R1"));
+
+        assert_eq!(sym, ctrl);
+    }
+
+    #[test]
+    fn sym_three() {
+        let sym = sym!(op "Add");
+        let ctrl = Symbol::Instruction(Token::from("Add"));
+
+        assert_eq!(sym, ctrl);
+    }
+
+    #[test]
+    fn sym_four() {
+        let sym = sym!(; "; Fuck");
+        let ctrl = Symbol::Comment(Token::from("; Fuck"));
+
+        assert_eq!(sym, ctrl);
+    }
+
+    #[test]
+    fn sym_five() {
+        let mut st = SymbolStream::default();
+        sym!(@sort st, "b.eq");
+        let ctrl = Symbol::Instruction(Token::from("b.eq"));
+
+        assert_eq!(st, ctrl.into());
+    }
+
+    #[test]
+    fn sym_six() {
+        let sym = sym! {
+            "mov", "r1", ",", "#0",
+            "svc", "0xf0"
+        };
+        println!("{sym:#?}");
     }
 }

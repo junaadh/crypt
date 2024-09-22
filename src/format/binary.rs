@@ -23,9 +23,9 @@ impl FromSlice<EsiuxBin> for EsiuxBin {
         let header = slice[..17].as_bytes::<Header>()?;
         let mut section_headers = Vec::new();
         for i in 0..header.section_count {
-            section_headers.push(
-                slice[16 + (i as usize * SegmentHeader::size())..].as_bytes::<SegmentHeader>()?,
-            );
+            let start = 16 + (i as usize * SegmentHeader::size());
+            section_headers
+                .push(slice[start..start + SegmentHeader::size()].as_bytes::<SegmentHeader>()?);
         }
         let data = slice
             .get(
