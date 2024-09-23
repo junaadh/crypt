@@ -34,6 +34,7 @@ pub fn impl_cryptee(tt: TokenStream) -> TokenStream {
                 _ => None,
             })
             .expect("Each field requires a doc comment error message");
+        let msg = msg.trim();
 
         let fields = x
             .fields

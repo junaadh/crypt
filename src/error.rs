@@ -44,6 +44,16 @@ pub enum EsiuxErrorKind {
     Lexer(ParserErrorKind),
     /// Unknown symbol: {} at line {}:{}
     UnknownSymbol(char, usize, usize),
+    /// Error empty symbol stream returned
+    EmptySymbolStream,
+    /// Unknown directive called: .{} @ line: {}
+    UnknownDirective(String, usize),
+    /// Unknown macro called: {} @ line: {}
+    UnknownSubstitution(String, usize),
+    /// Macro mismatch error:  {}
+    InvalidMacroMatch(String),
+    /// {} @ {}
+    DirectiveResolve(String, usize),
 }
 
 impl From<ParseIntError> for EsiuxErrorKind {

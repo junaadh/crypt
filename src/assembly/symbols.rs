@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{borrow::Cow, fmt};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Symbol<'a> {
@@ -11,12 +11,34 @@ pub enum Symbol<'a> {
     Register(Token<'a>),
     Punct(Token<'a>),
     Param(Token<'a>),
+    Input(Token<'a>),
     Whitespace(Token<'a>),
     // special cases like .endm
     Marker(Token<'a>),
     // For reconstruction purpose
     Comment(Token<'a>),
     Eof,
+}
+
+impl Symbol<'_> {
+    pub fn line(&self) -> usize {
+        match self {
+            Self::Label(s) => s.line,
+            Self::Directive(s, _) => s.line,
+            Self::Macros(s, _) => s.line,
+            Self::Ident(s) => s.line,
+            Self::Instruction(s) => s.line,
+            Self::Literal(s) => s.line,
+            Self::Register(s) => s.line,
+            Self::Punct(s) => s.line,
+            Self::Param(s) => s.line,
+            Self::Input(s) => s.line,
+            Self::Whitespace(s) => s.line,
+            Self::Marker(s) => s.line,
+            Self::Comment(s) => s.line,
+            Self::Eof => 0,
+        }
+    }
 }
 
 impl fmt::Display for Symbol<'_> {
@@ -91,7 +113,7 @@ impl<'a> From<SymbolStream<'a>> for Vec<Symbol<'a>> {
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct Token<'a> {
-    pub lexeme: &'a str,
+    pub lexeme: Cow<'a, str>,
     pub offset: usize,
     pub len: usize,
     pub line: usize,
@@ -107,7 +129,7 @@ impl<'a> Token<'a> {
         pc: Option<usize>,
     ) -> Token<'a> {
         Self {
-            lexeme: content,
+            lexeme: Cow::Borrowed(content),
             offset,
             len,
             line,
@@ -117,17 +139,37 @@ impl<'a> Token<'a> {
 
     pub fn from_str(content: &'a str, offset: usize, line: usize, pc: Option<usize>) -> Token<'a> {
         Self {
-            lexeme: content,
+            lexeme: Cow::Borrowed(content),
             offset,
             len: content.len(),
             line,
             pc,
         }
     }
+}
 
-    pub fn from(lexeme: &'a str) -> Self {
+impl<'a> From<&'a str> for Token<'a> {
+    fn from(value: &'a str) -> Self {
         Self {
-            lexeme,
+            lexeme: Cow::Borrowed(value),
+            ..Default::default()
+        }
+    }
+}
+
+impl<'a> From<String> for Token<'a> {
+    fn from(value: String) -> Self {
+        Self {
+            lexeme: Cow::Owned(value),
+            ..Default::default()
+        }
+    }
+}
+
+impl<'a> From<Cow<'a, str>> for Token<'a> {
+    fn from(value: Cow<'a, str>) -> Self {
+        Self {
+            lexeme: value,
             ..Default::default()
         }
     }

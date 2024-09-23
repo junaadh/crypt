@@ -1,18 +1,18 @@
 use std::{borrow::Cow, collections::HashMap};
 
-use crate::{format::Section, Res};
+use crate::{error::EsiuxErrorKind, format::Section, Res};
 
-use super::{Function, Macros, Scanner, SubMacro, Symbol, Token};
+use super::{Function, Macros, Scanner, SubMacro, Symbol, SymbolStream, Token};
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct PreProcessor<'a> {
-    pub labels: HashMap<&'a str, u32>,
+    pub labels: HashMap<Cow<'a, str>, u32>,
     pub variables: HashMap<Cow<'a, str>, Cow<'a, str>>,
     pub macros: HashMap<Cow<'a, str>, Macros<'a>>,
     pub pc: u32,
     pub source: &'a str,
     pub section: Section,
-    pub entry: Option<&'a str>,
+    pub entry: Option<Cow<'a, str>>,
 }
 
 impl<'a> PreProcessor<'a> {
@@ -25,104 +25,115 @@ impl<'a> PreProcessor<'a> {
         pp
     }
 
-    pub fn define_directive(&mut self, name: &'a str, value: Function<'a>) {
+    pub fn define_directive(&mut self, name: Cow<'a, str>, value: Function<'a>) {
+        self.macros.insert(name, Macros::Directive(value));
+    }
+
+    pub fn define_std(&mut self, name: &'a str, value: Function<'a>) {
         let name = Cow::Borrowed(name);
         self.macros.insert(name, Macros::Directive(value));
     }
 
-    pub fn define_submacro(&mut self, name: &'a str, value: SubMacro<'a>) {
-        let name = Cow::Borrowed(name);
+    pub fn define_submacro(&mut self, name: Cow<'a, str>, value: SubMacro<'a>) {
         self.macros.insert(name, Macros::Substitution(value));
     }
 
-    fn handle_macro(&mut self) -> Symbol<'_> {
-        // self.lex.advance_while(|x| x.is_alphabetic());
-        // let macro_name = self.content().to_string();
-
-        // let macro_lookup = self.macros.get(macro_name.trim_start_matches("."));
-
-        // let macro_body = if macro_name == ".macro" {
-        //     self.lex.advance_untill(".endm");
-        //     let len = self.lex.pos();
-        //     self.source
-        //         .get(self.lex.token_start..len)
-        //         .unwrap() // TODO: fix this with error
-        //         .lines()
-        //         .collect::<Vec<_>>()
-        // } else {
-        //     self.lex.advance_untill("\n");
-        //     let len = self.lex.pos();
-        //     self.source
-        //         .get(self.lex.token_start..len)
-        //         .unwrap()
-        //         .split_whitespace()
-        //         .skip(1)
-        //         .collect::<Vec<_>>()
-        // };
-
-        // let lookup_res = match macro_lookup {
-        //     Some(Macros::Directive(pred)) => pred(self, macro_body),
-        //     Some(Macros::Substitution(sub)) => {
-        //         assert_eq!(sub.input.len(), macro_body.len());
-
-        //         // let mut resolved = sub.body.join(" ");
-
-        //         // for (&param, &value) in sub.input.iter().zip(macro_body.iter()) {
-        //         //     resolved = resolved.replace(param, value);
-        //         // }
-
-        //         let resolved = sub
-        //             .body
-        //             .iter()
-        //             .map(|&word| {
-        //                 let mut result = word;
-        //                 for (&param, &value) in sub.input.iter().zip(macro_body.iter()) {
-        //                     if word == param {
-        //                         result = value;
-        //                     }
-        //                 }
-        //                 result
-        //             })
-        //             .collect::<Vec<_>>();
-
-        //         println!("{resolved:?}");
-        //         // Ok(Some(
-        //         //     resolved
-        //         //         .split_whitespace()
-        //         //         .map(|x| x.trim())
-        //         //         .collect::<Vec<_>>(),
-        //         // ))
-        //         todo!()
-        //     }
-        //     _ => todo!("{}", macro_name),
-        // }
-        // .map_err(|x| println!("{x}"))
-        // .unwrap();
-
-        // Symbol::Macro
-        todo!()
-    }
-
-    // pub fn tokenize(&'a mut self) -> impl Iterator<Item = Symbol> + 'a {
-    //     std::iter::from_fn(|| {
-    //         let tokens = self.advance_token();
-    //         if tokens != Symbol::Eof {
-    //             Some(tokens)
-    //         } else {
-    //             None
-    //         }
-    //     })
-    // }
-
-    pub fn handle(&'a mut self) -> Res<()> {
-        for sym in Scanner::new(self.source).tokenize() {
-            println!("{sym:#?}");
-            //     match sym.0 {
-            //         Symbol::Label(Token { lexeme, offset, len, line, pc })
-            //         _ => todo!("wip: {sym:?}"),
-            //     }
+    pub fn handle(&'a mut self) -> Res<SymbolStream<'_>> {
+        let mut st = SymbolStream::default();
+        let mut cur_line = 0;
+        for stream in Scanner::new(self.source).tokenize() {
+            // println!("{stream:#?}");
+            let mut instruction = false;
+            let mut _pos = 0;
+            for symbol in stream.0 {
+                let sline = symbol.line();
+                match sline {
+                    x if x > cur_line => {
+                        st.push(Symbol::Punct(Token::from("\n")));
+                        cur_line = x;
+                        _pos = 0;
+                        instruction = false;
+                    }
+                    _ => {
+                        _pos += 1;
+                    }
+                }
+                // println!("{cur_line}:{pos}");
+                match symbol {
+                    Symbol::Label(Token {
+                        lexeme,
+                        pc: Some(val),
+                        line,
+                        ..
+                    }) => {
+                        self.labels.insert(lexeme.clone(), val as u32);
+                        if instruction {
+                            let lit = format!("#{val}");
+                            st.push(Symbol::Literal(Token::from(lit)));
+                            st.push(Symbol::Whitespace(Token::from("\t")));
+                            st.push(Symbol::Comment(Token::from(lexeme)));
+                        } else {
+                            st.push(Symbol::Label(Token {
+                                lexeme,
+                                line,
+                                pc: Some(val),
+                                ..Default::default()
+                            }));
+                        }
+                    }
+                    Symbol::Directive(Token { lexeme, line, .. }, tokens) => {
+                        // This should be empty coz directives dont push any tokens
+                        // or do we push the tokens in the same order so as to recreate the og file???
+                        let resolved = match self.macros.get(lexeme.as_ref()) {
+                            Some(Macros::Directive(func)) => func(self, tokens)?,
+                            Some(Macros::Substitution(_)) => {
+                                return Err(EsiuxErrorKind::InvalidMacroMatch(lexeme.to_string()))
+                            }
+                            None => {
+                                return Err(EsiuxErrorKind::UnknownDirective(
+                                    lexeme.to_string(),
+                                    line,
+                                ))
+                            }
+                        };
+                        st.extend_from_vec(resolved);
+                    }
+                    Symbol::Macros(Token { lexeme, line, .. }, tokens) => {
+                        let resolved = match self.macros.get(lexeme.as_ref()) {
+                            Some(Macros::Directive(_)) => {
+                                return Err(EsiuxErrorKind::InvalidMacroMatch(lexeme.to_string()))
+                            }
+                            Some(Macros::Substitution(s)) => Vec::<Symbol<'a>>::new(),
+                            None => {
+                                return Err(EsiuxErrorKind::UnknownSubstitution(
+                                    lexeme.to_string(),
+                                    line,
+                                ))
+                            }
+                        };
+                        st.extend_from_vec(resolved);
+                    }
+                    Symbol::Instruction(t) => {
+                        instruction = true;
+                        self.pc = t.pc.unwrap_or_default() as u32;
+                        st.push(Symbol::Instruction(t));
+                    }
+                    Symbol::Literal(s) => st.push(Symbol::Literal(s)),
+                    Symbol::Register(s) => st.push(Symbol::Register(s)),
+                    Symbol::Punct(s) => {
+                        st.push(Symbol::Punct(s));
+                    }
+                    Symbol::Comment(s) => st.push(Symbol::Comment(s)),
+                    // _ => todo!("wip: {symbol:?}"),
+                    _ => {
+                        println!("skipped: {symbol:#?}")
+                    }
+                }
+            }
         }
 
-        Ok(())
+        println!("{self:#?}");
+
+        Ok(st)
     }
 }

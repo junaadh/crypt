@@ -1,5 +1,5 @@
 use core::panic;
-use std::{collections::HashMap, intrinsics::volatile_store};
+use std::collections::HashMap;
 
 use eparser::lexer::Lexer;
 
@@ -55,15 +55,13 @@ impl<'a> Scanner<'a> {
         )
     }
 
-    fn whitespace(&mut self) -> Symbol<'a> {
+    fn whitespace(&mut self) {
         self.lexer
             .advance_while(|x| matches!(x, ' ' | '\t' | '\n' | '\r'));
-        Symbol::Whitespace(self.token())
     }
 
-    fn whitespace_noln(&mut self) -> Symbol<'a> {
-        self.lexer.advance_while(|x| matches!(x, ' ' | '\t' | '\r'));
-        Symbol::Whitespace(self.token())
+    fn whitespace_noln(&mut self) {
+        self.lexer.advance_while(|x| matches!(x, ' ' | '\t' | '\r'))
     }
 
     fn label(&mut self) -> SymbolStream<'a> {
@@ -80,7 +78,7 @@ impl<'a> Scanner<'a> {
             self.lexer.advance_word();
             self.token()
         };
-        let white1 = self.whitespace();
+        self.whitespace();
         self.lexer.reset_ptr();
 
         let mut macro_body = Vec::new();
@@ -90,7 +88,6 @@ impl<'a> Scanner<'a> {
             let decl = self.content();
             let decl_name = { Symbol::Ident(self.token()) };
             macro_body.push(decl_name);
-            macro_body.push(white1);
             self.whitespace_noln();
             self.lexer.reset_ptr();
             self.lexer.advance_untill(".endm");
@@ -152,7 +149,7 @@ impl<'a> Scanner<'a> {
 
         let pc_inc = self
             .map
-            .get(token.lexeme)
+            .get(token.lexeme.as_ref())
             .expect("Expected the offset increment");
         self.offset += pc_inc;
 
@@ -185,7 +182,7 @@ impl<'a> Scanner<'a> {
             }
             Some(_) if instruction.lexeme.starts_with("b") => {
                 self.lexer.advance_word();
-                Symbol::Literal(self.token())
+                Symbol::Label(self.pc_token())
             }
             x => panic!(
                 "Unexpected end of file: line {}: '{:?}'",
@@ -298,7 +295,7 @@ impl<'a> Scanner<'a> {
             }
             '\\' => {
                 self.lexer.advance_word();
-                Symbol::Param(self.token()).into()
+                Symbol::Input(self.token()).into()
             }
             'a'..='z' | 'A'..='Z' | '0'..='9' | '_' => {
                 self.lexer.advance_word();

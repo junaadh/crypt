@@ -1,8 +1,5 @@
-use std::borrow::Cow;
-
-use crate::{error::EsiuxErrorKind, Res};
-
-use super::PreProcessor;
+use super::{PreProcessor, Symbol, SymbolStream, Token};
+use crate::{error::EsiuxErrorKind, format::Section, Res};
 
 #[derive(Debug, Clone)]
 pub enum Macros<'a> {
@@ -12,54 +9,113 @@ pub enum Macros<'a> {
 
 #[derive(Debug, Clone)]
 pub struct SubMacro<'a> {
-    pub input: Vec<&'a str>,
-    pub body: Vec<&'a str>,
+    pub input: Vec<Token<'a>>,
+    pub body: Vec<Symbol<'a>>,
 }
 
 pub type Function<'a> =
-    fn(pp: &mut PreProcessor<'a>, input: Vec<&'a str>) -> Res<Option<Vec<&'a str>>>;
+    fn(pp: &mut PreProcessor<'a>, input: Vec<Symbol<'a>>) -> Res<Vec<Symbol<'a>>>;
 
 impl<'a> PreProcessor<'a> {
     pub fn standard_directives(&mut self) {
-        self.define_directive("global", global);
-        self.define_directive("macro", amacro);
+        self.define_std("global", global);
+        self.define_std("macro", amacro);
+        self.define_std("section", section);
     }
 }
 
-pub fn global<'a>(pp: &mut PreProcessor<'a>, input: Vec<&'a str>) -> Res<Option<Vec<&'a str>>> {
-    let entry_label = input[0];
-    pp.entry = Some(entry_label);
-    Ok(None)
+pub fn global<'a>(pp: &mut PreProcessor<'a>, input: Vec<Symbol<'a>>) -> Res<Vec<Symbol<'a>>> {
+    let Token { lexeme, .. } = if let Some(Symbol::Label(token)) = input.first().cloned() {
+        token
+    } else {
+        return Err(EsiuxErrorKind::DirectiveResolve(
+            format!(
+                "Failed to resolve .global: Expected a label got {:?}",
+                input[0]
+            ),
+            input[0].line(),
+        ));
+    };
+
+    pp.entry = Some(lexeme);
+
+    let mut st = SymbolStream::default();
+    st.push(input[0].clone());
+    // st.push(Symbol::Whitespace(Token::from("\n")));
+
+    let resolved = Symbol::Directive(Token::from("global"), st.0);
+
+    Ok(vec![resolved])
 }
 
-pub fn amacro<'a>(pp: &mut PreProcessor<'a>, input: Vec<&'a str>) -> Res<Option<Vec<&'a str>>> {
+pub fn amacro<'a>(pp: &mut PreProcessor<'a>, input: Vec<Symbol<'a>>) -> Res<Vec<Symbol<'a>>> {
     if input.is_empty() {
         return Err(EsiuxErrorKind::DefineMacro);
     }
 
-    let inputs = input[0].split_whitespace().collect::<Vec<_>>();
-    let macro_name = inputs[1];
+    let mut st = SymbolStream::default();
 
-    let param = inputs.iter().skip(2).map(|x| x.trim()).collect::<Vec<_>>();
+    let mut name = None::<Token<'a>>;
+    let mut params = Vec::new();
+    let mut body = Vec::new();
 
-    let submacro = SubMacro {
-        input: param,
-        body: input[1..input.len() - 1].to_vec(),
+    for symbol in input {
+        // do a global switch for only preprocess true run this if else
+        st.push(symbol.clone());
+        match symbol {
+            Symbol::Ident(t) => {
+                if name.is_none() {
+                    name = Some(t);
+                }
+            }
+            Symbol::Input(t) => params.push(t),
+            _ => body.push(symbol),
+        }
+    }
+
+    let sub = SubMacro {
+        input: params,
+        body,
     };
 
-    pp.define_submacro(macro_name, submacro);
+    let lex = if let Some(Token { lexeme, .. }) = name {
+        lexeme
+    } else {
+        todo!();
+    };
 
-    Ok(None)
+    pp.define_submacro(lex, sub);
+
+    let subs = Symbol::Macros(Token::from("macro"), st.0);
+
+    Ok(vec![subs])
 }
 
-pub fn section<'a>(pp: &mut PreProcessor<'a>, input: Vec<&'a str>) -> Res<Option<Vec<&'a str>>> {
-    if input.is_empty() || input.len() < 2 {
+pub fn section<'a>(pp: &mut PreProcessor<'a>, input: Vec<Symbol<'a>>) -> Res<Vec<Symbol<'a>>> {
+    if input.is_empty() {
         return Err(EsiuxErrorKind::Format(Box::new(
             "format: .section <name>".to_string(),
         )));
     }
 
-    let section = input[1];
+    let Token { lexeme, .. } = if let Some(Symbol::Ident(label)) = input.first() {
+        label
+    } else {
+        return Err(EsiuxErrorKind::DirectiveResolve(
+            format!(
+                "Failed to resolve .section: Expected an ident got {:?}",
+                input[0]
+            ),
+            input[0].line(),
+        ));
+    };
 
-    Ok(None)
+    pp.section = lexeme.parse::<Section>()?;
+
+    let resolved = vec![Symbol::Directive(
+        Token::from("section"),
+        vec![input[0].clone()],
+    )];
+
+    Ok(resolved)
 }
