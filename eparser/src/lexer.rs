@@ -44,13 +44,15 @@ impl<'a> Lexer<'a> {
         self.len - self.chars.as_str().len()
     }
 
-    pub fn advance_while<F>(&mut self, mut f: F)
+    pub fn advance_while<F>(&mut self, mut f: F) -> Vec<char>
     where
         F: FnMut(char) -> bool,
     {
+        let mut chars = Vec::new();
         while !self.is_eof() && f(self.peek().unwrap()) {
-            self.advance();
+            chars.push(self.advance().unwrap());
         }
+        chars
     }
 
     pub fn advance_word(&mut self) {

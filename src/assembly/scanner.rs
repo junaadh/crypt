@@ -1,5 +1,5 @@
 use core::panic;
-use std::collections::HashMap;
+use std::{borrow::Cow, collections::HashMap};
 
 use eparser::lexer::Lexer;
 
@@ -9,11 +9,11 @@ use super::{Symbol, SymbolStream, Token};
 
 #[derive(Debug)]
 pub struct Scanner<'a> {
-    lexer: Lexer<'a>,
-    source: &'a str,
+    pub(super) lexer: Lexer<'a>,
+    pub(super) source: &'a str,
     in_macro: bool,
-    offset: usize,
-    map: HashMap<&'a str, usize>,
+    pub(super) offset: usize,
+    pub(super) map: HashMap<&'a str, usize>,
 }
 
 impl<'a> Scanner<'a> {
@@ -27,14 +27,14 @@ impl<'a> Scanner<'a> {
         }
     }
 
-    fn content(&self) -> &'a str {
+    pub(super) fn content(&self) -> &'a str {
         let start = self.lexer.token_start;
         let end = self.lexer.pos();
 
         &self.source[start..end]
     }
 
-    fn token(&self) -> Token<'a> {
+    pub(super) fn token(&self) -> Token<'a> {
         let start = self.lexer.token_start;
         let end = self.lexer.pos();
 
@@ -42,7 +42,7 @@ impl<'a> Scanner<'a> {
         Token::from_str(str.trim_start_matches("."), start, self.lexer.line, None)
     }
 
-    fn pc_token(&self) -> Token<'a> {
+    pub(super) fn pc_token(&self) -> Token<'a> {
         let start = self.lexer.token_start;
         let end = self.lexer.pos();
 
@@ -55,16 +55,25 @@ impl<'a> Scanner<'a> {
         )
     }
 
-    fn whitespace(&mut self) {
+    pub(super) fn whitespace(&mut self) {
         self.lexer
             .advance_while(|x| matches!(x, ' ' | '\t' | '\n' | '\r'));
     }
 
-    fn whitespace_noln(&mut self) {
-        self.lexer.advance_while(|x| matches!(x, ' ' | '\t' | '\r'))
+    pub(super) fn whitespace_noln(&mut self) -> Vec<Symbol<'a>> {
+        let chars = self.lexer.advance_while(|x| matches!(x, ' ' | '\t' | '\r'));
+        chars
+            .iter()
+            .map(|&x| {
+                Symbol::Whitespace(Token {
+                    lexeme: Cow::Owned(x.to_string()),
+                    ..Default::default()
+                })
+            })
+            .collect::<Vec<_>>()
     }
 
-    fn label(&mut self) -> SymbolStream<'a> {
+    pub(super) fn label(&mut self) -> SymbolStream<'a> {
         let mut st = SymbolStream(vec![Symbol::Label(self.pc_token())], 0);
         if self.lexer.peek().map(|x| x == ':').unwrap_or_default() {
             self.lexer.reset_ptr();
@@ -73,7 +82,7 @@ impl<'a> Scanner<'a> {
         st
     }
 
-    fn directive(&mut self) -> Symbol<'a> {
+    pub(super) fn directive(&mut self) -> Symbol<'a> {
         let macro_name = {
             self.lexer.advance_word();
             self.token()
@@ -114,10 +123,10 @@ impl<'a> Scanner<'a> {
 
         self.map.insert(name, pc); //.expect("Expected valid pc");
 
-        Symbol::Directive(macro_name, macro_body)
+        Symbol::Directive(macro_name)
     }
 
-    fn macro_sub(&mut self) -> Symbol<'a> {
+    pub(super) fn macro_sub(&mut self) -> Symbol<'a> {
         let token = self.token();
 
         let mut st = SymbolStream::default();
@@ -156,10 +165,10 @@ impl<'a> Scanner<'a> {
         // println!("{:?}", self.lexer.peek());
         // println!("{token:?}");
         // println!("{st:?}");
-        Symbol::Macros(token, st.0)
+        Symbol::Macros(token)
     }
 
-    fn instruction(&mut self) -> SymbolStream<'a> {
+    pub(super) fn instruction(&mut self) -> SymbolStream<'a> {
         let instruction = self.pc_token();
         self.whitespace_noln();
         self.lexer.reset_ptr();
@@ -263,17 +272,17 @@ impl<'a> Scanner<'a> {
         st
     }
 
-    fn punctuation(&mut self, sym: char) -> Symbol<'a> {
+    pub(super) fn punctuation(&mut self, sym: char) -> Symbol<'a> {
         self.lexer.eat_char(sym).unwrap();
         Symbol::Punct(self.token())
     }
 
-    fn comment(&mut self) -> SymbolStream<'a> {
+    pub(super) fn comment(&mut self) -> SymbolStream<'a> {
         self.lexer.advance_untill("\n");
         Symbol::Comment(self.token()).into()
     }
 
-    fn advance(&mut self) -> SymbolStream<'a> {
+    pub(super) fn advance(&mut self) -> SymbolStream<'a> {
         self.whitespace();
         self.lexer.token_start = self.lexer.pos();
 

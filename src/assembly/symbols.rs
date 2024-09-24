@@ -3,8 +3,8 @@ use std::{borrow::Cow, fmt};
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Symbol<'a> {
     Label(Token<'a>),
-    Directive(Token<'a>, Vec<Symbol<'a>>),
-    Macros(Token<'a>, Vec<Symbol<'a>>),
+    Directive(Token<'a>),
+    Macros(Token<'a>),
     Ident(Token<'a>),
     Instruction(Token<'a>),
     Literal(Token<'a>),
@@ -24,8 +24,8 @@ impl<'a> Symbol<'a> {
     pub fn line(&self) -> usize {
         match self {
             Self::Label(s) => s.line,
-            Self::Directive(s, _) => s.line,
-            Self::Macros(s, _) => s.line,
+            Self::Directive(s) => s.line,
+            Self::Macros(s) => s.line,
             Self::Ident(s) => s.line,
             Self::Instruction(s) => s.line,
             Self::Literal(s) => s.line,
@@ -43,8 +43,8 @@ impl<'a> Symbol<'a> {
     pub fn lexeme(&self) -> Cow<'a, str> {
         match self {
             Self::Label(s) => s.lexeme.clone(),
-            Self::Directive(s, _) => s.lexeme.clone(),
-            Self::Macros(s, _) => s.lexeme.clone(),
+            Self::Directive(s) => s.lexeme.clone(),
+            Self::Macros(s) => s.lexeme.clone(),
             Self::Ident(s) => s.lexeme.clone(),
             Self::Instruction(s) => s.lexeme.clone(),
             Self::Literal(s) => s.lexeme.clone(),

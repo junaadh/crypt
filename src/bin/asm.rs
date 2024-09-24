@@ -24,16 +24,17 @@ fn main() -> Res<()> {
 
     let sym = pp.handle()?;
     for symbol in sym.0 {
-        match symbol {
-            esiux_isa::assembly::Symbol::Macros(a, b)
-            | esiux_isa::assembly::Symbol::Directive(a, b) => {
-                println!("{a:?}");
-                for s in b {
-                    println!("{s:?}");
-                }
-            }
-            _ => println!("{symbol:?}"),
-        }
+        // match symbol {
+        //     esiux_isa::assembly::Symbol::Macros(a, b)
+        //     | esiux_isa::assembly::Symbol::Directive(a, b) => {
+        //         println!("{a:#?}");
+        //         for s in b {
+        //             println!("{s:#?}");
+        //         }
+        //     }
+        //     _ => println!("{symbol:#?}"),
+        // }
+        print!("{symbol}");
     }
 
     // stdout().write_all(&slice)?;

@@ -1,8 +1,8 @@
 use std::{borrow::Cow, collections::HashMap};
 
-use crate::{error::EsiuxErrorKind, format::Section, Res};
+use crate::{format::Section, Res};
 
-use super::{Function, Macros, Scanner, SubMacro, Symbol, SymbolStream, Token};
+use super::{Function, Macros, SubMacro, SymbolStream};
 
 #[derive(Debug, Default, Clone)]
 pub struct PreProcessor<'a> {
@@ -39,6 +39,7 @@ impl<'a> PreProcessor<'a> {
     }
 
     pub fn handle(&'a mut self) -> Res<SymbolStream<'_>> {
+        /*
         let mut st = SymbolStream::default();
         let mut cur_line = 0;
         for stream in Scanner::new(self.source).tokenize() {
@@ -164,5 +165,7 @@ impl<'a> PreProcessor<'a> {
         // println!("{self:#?}");
 
         Ok(st)
+        */
+        todo!()
     }
 }
