@@ -103,7 +103,36 @@ impl<'a> PreProcessor<'a> {
                             Some(Macros::Directive(_)) => {
                                 return Err(EsiuxErrorKind::InvalidMacroMatch(lexeme.to_string()))
                             }
-                            Some(Macros::Substitution(s)) => Vec::<Symbol<'a>>::new(),
+                            Some(Macros::Substitution(s)) => {
+                                let mut st_inner = SymbolStream::default();
+
+                                let SubMacro { input, body } = s;
+
+                                for token in body {
+                                    // println!("{token:#?}");
+                                    match token {
+                                        Symbol::Param(Token { lexeme, .. }) => {
+                                            for (inp, val) in input.iter().zip(tokens.iter()) {
+                                                if &inp.lexeme == lexeme {
+                                                    st_inner.push(val.clone());
+                                                }
+                                            }
+                                        }
+                                        Symbol::Instruction(s) => {
+                                            let pc = s.pc.unwrap() as u32;
+                                            let updated = pc + self.pc;
+                                            self.pc = updated;
+
+                                            let mut ntok = s.clone();
+                                            ntok.pc = Some(updated as usize);
+                                            st_inner.push(Symbol::Instruction(ntok));
+                                        }
+                                        x => st_inner.push(x.clone()),
+                                    }
+                                }
+
+                                st_inner.0
+                            }
                             None => {
                                 return Err(EsiuxErrorKind::UnknownSubstitution(
                                     lexeme.to_string(),
@@ -115,7 +144,7 @@ impl<'a> PreProcessor<'a> {
                     }
                     Symbol::Instruction(t) => {
                         instruction = true;
-                        self.pc = t.pc.unwrap_or_default() as u32;
+                        self.pc = t.pc.unwrap_or_default() as u32 + 4;
                         st.push(Symbol::Instruction(t));
                     }
                     Symbol::Literal(s) => st.push(Symbol::Literal(s)),
@@ -132,7 +161,7 @@ impl<'a> PreProcessor<'a> {
             }
         }
 
-        println!("{self:#?}");
+        // println!("{self:#?}");
 
         Ok(st)
     }

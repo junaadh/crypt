@@ -20,7 +20,7 @@ pub enum Symbol<'a> {
     Eof,
 }
 
-impl Symbol<'_> {
+impl<'a> Symbol<'a> {
     pub fn line(&self) -> usize {
         match self {
             Self::Label(s) => s.line,
@@ -37,6 +37,25 @@ impl Symbol<'_> {
             Self::Marker(s) => s.line,
             Self::Comment(s) => s.line,
             Self::Eof => 0,
+        }
+    }
+
+    pub fn lexeme(&self) -> Cow<'a, str> {
+        match self {
+            Self::Label(s) => s.lexeme.clone(),
+            Self::Directive(s, _) => s.lexeme.clone(),
+            Self::Macros(s, _) => s.lexeme.clone(),
+            Self::Ident(s) => s.lexeme.clone(),
+            Self::Instruction(s) => s.lexeme.clone(),
+            Self::Literal(s) => s.lexeme.clone(),
+            Self::Register(s) => s.lexeme.clone(),
+            Self::Punct(s) => s.lexeme.clone(),
+            Self::Param(s) => s.lexeme.clone(),
+            Self::Input(s) => s.lexeme.clone(),
+            Self::Whitespace(s) => s.lexeme.clone(),
+            Self::Marker(s) => s.lexeme.clone(),
+            Self::Comment(s) => s.lexeme.clone(),
+            Self::Eof => Cow::Borrowed(""),
         }
     }
 }

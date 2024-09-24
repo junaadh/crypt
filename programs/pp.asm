@@ -13,7 +13,7 @@
 
 _start:
 	mov  r1, #1 ; damn bro
-	; FUCK r1 r2
+	FUCK r1 r2
 	b    done
 
 done:
