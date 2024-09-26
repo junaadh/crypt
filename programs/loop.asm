@@ -1,4 +1,7 @@
-        mov  r8, #0
+.global _start
+
+_start:
+         mov  r8, #0
 
 loop:
         cmp  r8, #10

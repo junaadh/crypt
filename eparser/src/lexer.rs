@@ -44,15 +44,13 @@ impl<'a> Lexer<'a> {
         self.len - self.chars.as_str().len()
     }
 
-    pub fn advance_while<F>(&mut self, mut f: F) -> Vec<char>
+    pub fn advance_while<F>(&mut self, mut f: F)
     where
         F: FnMut(char) -> bool,
     {
-        let mut chars = Vec::new();
         while !self.is_eof() && f(self.peek().unwrap()) {
-            chars.push(self.advance().unwrap());
+            self.advance();
         }
-        chars
     }
 
     pub fn advance_word(&mut self) {
@@ -78,7 +76,11 @@ impl<'a> Lexer<'a> {
                 self.advance();
                 Ok(x)
             }
-            Some(x) => Err(ParserErrorKind::Unexpected(Box::new(x), Box::new(char))),
+            Some(x) => Err(ParserErrorKind::Unexpected(
+                Box::new(x),
+                Box::new(char),
+                self.line,
+            )),
             None => Err(ParserErrorKind::Eof),
         }
     }

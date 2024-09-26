@@ -1,4 +1,4 @@
-use super::{PreProcessor, Symbol, Token};
+use super::{PreProcessor, Statements, Symbol};
 use crate::Res;
 
 #[derive(Debug, Clone)]
@@ -9,12 +9,13 @@ pub enum Macros<'a> {
 
 #[derive(Debug, Clone)]
 pub struct SubMacro<'a> {
-    pub input: Vec<Token<'a>>,
-    pub body: Vec<Symbol<'a>>,
+    pub input: Vec<Symbol<'a>>,
+    pub body: Vec<Statements<'a>>,
+    pub offset: u32,
 }
 
 pub type Function<'a> =
-    fn(pp: &mut PreProcessor<'a>, input: Vec<Symbol<'a>>) -> Res<Vec<Symbol<'a>>>;
+    fn(pp: &mut PreProcessor<'a>, input: Statements<'a>) -> Res<Vec<Statements<'a>>>;
 
 impl<'a> PreProcessor<'a> {
     pub fn standard_directives(&mut self) {
@@ -24,76 +25,60 @@ impl<'a> PreProcessor<'a> {
     }
 }
 
-pub fn global<'a>(_pp: &mut PreProcessor<'a>, _input: Vec<Symbol<'a>>) -> Res<Vec<Symbol<'a>>> {
-    // let Token { lexeme, .. } = if let Some(Symbol::Label(token)) = input.first().cloned() {
-    //     token
-    // } else {
-    //     return Err(EsiuxErrorKind::DirectiveResolve(
-    //         format!(
-    //             "Failed to resolve .global: Expected a label got {:?}",
-    //             input[0]
-    //         ),
-    //         input[0].line(),
-    //     ));
-    // };
+pub fn global<'a>(pp: &mut PreProcessor<'a>, input: Statements<'a>) -> Res<Vec<Statements<'a>>> {
+    let mut st = Vec::new();
+    // println!("{input:#?}");
 
-    // pp.entry = Some(lexeme);
+    let param = if let Statements::Directive { name, params, .. } = input.clone() {
+        assert!(name.lexeme().as_ref() == "global", "assertion failed");
+        params
+    } else {
+        todo!()
+    };
 
-    // let mut st = SymbolStream::default();
-    // st.push(input[0].clone());
-    // // st.push(Symbol::Whitespace(Token::from("\n")));
+    let entry = param.first();
+    let entry_label = entry.map(|x| x.lexeme());
 
-    // let resolved = Symbol::Directive(Token::from("global"), st.0);
+    pp.entry = entry_label;
 
-    // Ok(vec![resolved])
-    todo!()
+    st.push(input);
+    Ok(st)
 }
 
-pub fn amacro<'a>(_pp: &mut PreProcessor<'a>, _input: Vec<Symbol<'a>>) -> Res<Vec<Symbol<'a>>> {
-    // if input.is_empty() {
-    //     return Err(EsiuxErrorKind::DefineMacro);
-    // }
+pub fn amacro<'a>(pp: &mut PreProcessor<'a>, input: Statements<'a>) -> Res<Vec<Statements<'a>>> {
+    let mut st = Vec::new();
 
-    // let mut st = SymbolStream::default();
+    let (params, body, pc) = if let Statements::Directive {
+        name,
+        params,
+        body,
+        pc,
+        ..
+    } = input.clone()
+    {
+        assert_eq!(name.lexeme().as_ref(), "macro", "assertion failed");
+        (params, body, pc)
+    } else {
+        todo!()
+    };
 
-    // let mut name = None::<Token<'a>>;
-    // let mut params = Vec::new();
-    // let mut body = Vec::new();
+    let name = params.first();
+    let params = params[1..].to_vec();
 
-    // for symbol in input {
-    //     // do a global switch for only preprocess true run this if else
-    //     st.push(symbol.clone());
-    //     match symbol {
-    //         Symbol::Ident(t) => {
-    //             if name.is_none() {
-    //                 name = Some(t);
-    //             }
-    //         }
-    //         Symbol::Input(t) => params.push(t),
-    //         _ => body.push(symbol),
-    //     }
-    // }
+    let sub = SubMacro {
+        input: params,
+        body,
+        offset: pc,
+    };
 
-    // let sub = SubMacro {
-    //     input: params,
-    //     body,
-    // };
+    pp.define_submacro(name.unwrap().lexeme(), sub);
 
-    // let lex = if let Some(Token { lexeme, .. }) = name {
-    //     lexeme
-    // } else {
-    //     todo!();
-    // };
+    st.push(input);
 
-    // pp.define_submacro(lex, sub);
-
-    // let subs = Symbol::Macros(Token::from("macro"), st.0);
-
-    // Ok(vec![subs])
-    todo!()
+    Ok(st)
 }
 
-pub fn section<'a>(_pp: &mut PreProcessor<'a>, _input: Vec<Symbol<'a>>) -> Res<Vec<Symbol<'a>>> {
+pub fn section<'a>(_pp: &mut PreProcessor<'a>, _input: Statements<'a>) -> Res<Vec<Statements<'a>>> {
     // if input.is_empty() {
     //     return Err(EsiuxErrorKind::Format(Box::new(
     //         "format: .section <name>".to_string(),

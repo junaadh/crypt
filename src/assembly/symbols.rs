@@ -55,42 +55,33 @@ impl<'a> Symbol<'a> {
             Self::Whitespace(s) => s.lexeme.clone(),
             Self::Marker(s) => s.lexeme.clone(),
             Self::Comment(s) => s.lexeme.clone(),
-            Self::Eof => Cow::Borrowed(""),
+            Self::Eof => Cow::Borrowed("Eof"),
+        }
+    }
+    pub fn pc(&self) -> u32 {
+        match self {
+            Self::Label(s) => s.pc.unwrap_or(0),
+            Self::Directive(s) => s.pc.unwrap_or(0),
+            Self::Macros(s) => s.pc.unwrap_or(0),
+            Self::Ident(s) => s.pc.unwrap_or(0),
+            Self::Instruction(s) => s.pc.unwrap_or(0),
+            Self::Literal(s) => s.pc.unwrap_or(0),
+            Self::Register(s) => s.pc.unwrap_or(0),
+            Self::Punct(s) => s.pc.unwrap_or(0),
+            Self::Param(s) => s.pc.unwrap_or(0),
+            Self::Input(s) => s.pc.unwrap_or(0),
+            Self::Whitespace(s) => s.pc.unwrap_or(0),
+            Self::Marker(s) => s.pc.unwrap_or(0),
+            Self::Comment(s) => s.pc.unwrap_or(0),
+            Self::Eof => 0,
         }
     }
 }
 
 impl fmt::Display for Symbol<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Symbol::Label(Token {
-                lexeme,
-                pc: Some(offset),
-                ..
-            }) => {
-                write!(f, "{offset}\t; {lexeme}")
-            }
-            Symbol::Ident(token) => write!(f, "\t{}", token.lexeme),
-            Symbol::Instruction(token) => write!(
-                f,
-                "{}",
-                if token.lexeme.starts_with("b") {
-                    format!("\t{}\t", token.lexeme)
-                } else {
-                    format!("\t{}", token.lexeme)
-                }
-            ),
-            Symbol::Literal(token) => write!(f, "\t#{}", token.lexeme.trim_start_matches("#")),
-            Symbol::Register(token) => write!(f, "\t{}", token.lexeme),
-            Symbol::Punct(token) => write!(f, "{}", token.lexeme),
-            Symbol::Param(token) => write!(f, "\\{}", token.lexeme),
-            Symbol::Marker(token) => write!(f, ".{}", token.lexeme.trim_start_matches(".")),
-            Symbol::Comment(token) => {
-                write!(f, "; {}", token.lexeme.trim_start_matches(";").trim_start())
-            }
-            Symbol::Eof => write!(f, "\\eof"),
-            _ => todo!("{self:?}"),
-        }
+        let s = &self.lexeme();
+        write!(f, "{}", s)
     }
 }
 
@@ -136,7 +127,7 @@ pub struct Token<'a> {
     pub offset: usize,
     pub len: usize,
     pub line: usize,
-    pub pc: Option<usize>,
+    pub pc: Option<u32>,
 }
 
 impl<'a> Token<'a> {
@@ -145,7 +136,7 @@ impl<'a> Token<'a> {
         offset: usize,
         len: usize,
         line: usize,
-        pc: Option<usize>,
+        pc: Option<u32>,
     ) -> Token<'a> {
         Self {
             lexeme: Cow::Borrowed(content),
@@ -156,7 +147,7 @@ impl<'a> Token<'a> {
         }
     }
 
-    pub fn from_str(content: &'a str, offset: usize, line: usize, pc: Option<usize>) -> Token<'a> {
+    pub fn from_str(content: &'a str, offset: usize, line: usize, pc: Option<u32>) -> Token<'a> {
         Self {
             lexeme: Cow::Borrowed(content),
             offset,

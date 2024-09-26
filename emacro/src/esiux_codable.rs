@@ -34,6 +34,7 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
     let mut encode_ = Vec::<proc_macro2::TokenStream>::new();
 
     let mut all_op = String::new();
+    all_op.push('_');
 
     for variant in data.variants {
         let variant_name = &variant.ident;
@@ -64,6 +65,7 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
         let mnumonic = mnumonic.as_str();
 
         all_op.push_str(mnumonic);
+        all_op.push('_');
 
         from_str.push(quote! {
             x if x.starts_with(#mnumonic) => Ok(Self::#variant_name),
@@ -258,7 +260,7 @@ pub fn impl_codable(tt: TokenStream) -> TokenStream {
                 let ins = match ins {
                     0x1 | 0x5 | 0x7 => ((value >> 8) & 0xf) as u8 | ins << 4,
                     0x3 => ((value >> 11) & 0b1) as u8 | ins << 4,
-                    _ => panic!("This shouldnt happen"),
+                    _ => panic!("This shouldnt happen: instruction_val: {ins} - {ins:08b}"),
                 };
                 let ins = Op::try_from(ins)?;
 
