@@ -173,7 +173,7 @@ impl<'a> Scanner<'a> {
                 }
             }
             7 => {
-                let op1 = self.parse_operand(true);
+                let op1 = self.parse_operand(false);
 
                 Statements::SCI {
                     instruction,
@@ -326,7 +326,7 @@ impl<'a> Scanner<'a> {
                 self.lexer.advance_word();
                 let kw = get_all_op();
                 let word = self.content();
-
+                // TODO: handle if moveq instructions
                 let s = word.split_once(".").unwrap_or((word, "")).0;
                 // println!("{word}");
                 if kw.contains(format!("_{}_", s).to_lowercase().as_str()) {

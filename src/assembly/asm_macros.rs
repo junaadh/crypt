@@ -1,5 +1,5 @@
 use super::{PreProcessor, Statements, Symbol};
-use crate::Res;
+use crate::{error::EsiuxErrorKind, Res};
 
 #[derive(Debug, Clone)]
 pub enum Macros<'a> {
@@ -29,17 +29,24 @@ pub fn global<'a>(pp: &mut PreProcessor<'a>, input: Statements<'a>) -> Res<Vec<S
     let mut st = Vec::new();
     // println!("{input:#?}");
 
-    let param = if let Statements::Directive { name, params, .. } = input.clone() {
+    let (param, name) = if let Statements::Directive { name, params, .. } = input.clone() {
         assert!(name.lexeme().as_ref() == "global", "assertion failed");
-        params
+        (params, name)
     } else {
         todo!()
     };
 
-    let entry = param.first();
-    let entry_label = entry.map(|x| x.lexeme());
+    let entry = if let Some(Symbol::Label(x)) = param.first() {
+        Ok(x)
+    } else {
+        Err(EsiuxErrorKind::ExpectedLabel(
+            ".section".to_string(),
+            name.line(),
+        ))
+    }?
+    .clone();
 
-    pp.entry = entry_label;
+    pp.entry = Some(entry);
 
     st.push(input);
     Ok(st)

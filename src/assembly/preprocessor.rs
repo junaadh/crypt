@@ -14,7 +14,7 @@ pub struct PreProcessor<'a> {
     pub pc: u32,
     pub source: &'a str,
     pub section: Section,
-    pub entry: Option<Cow<'a, str>>,
+    pub entry: Option<Token<'a>>,
     pub intern_buf: Vec<Statements<'a>>,
 }
 
@@ -37,7 +37,7 @@ impl<'a> PreProcessor<'a> {
         self.macros.insert(name, Macros::Directive(value));
     }
 
-    fn get_macro(&mut self, name: &str) -> Option<Macros<'a>> {
+    fn get_macro(&self, name: &str) -> Option<Macros<'a>> {
         self.macros.get(name).cloned()
     }
 

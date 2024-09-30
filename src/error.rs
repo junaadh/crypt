@@ -54,6 +54,8 @@ pub enum EsiuxErrorKind {
     InvalidMacroMatch(String),
     /// {} @ {}
     DirectiveResolve(String, usize),
+    /// Expected a label: {} @ {}
+    ExpectedLabel(String, usize),
 }
 
 impl From<ParseIntError> for EsiuxErrorKind {

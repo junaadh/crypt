@@ -1,6 +1,8 @@
-use std::{collections::HashMap, fs, io::Read};
+use std::{collections::HashMap, fs, io::Read, process};
 
-use crate::{parser::ToNum, processor::Instruction, Res};
+use crate::{format::EsiuxBin, Res};
+
+use super::PreProcessor;
 
 #[derive(Debug, Default)]
 pub struct Assembler {
@@ -49,28 +51,17 @@ impl Assembler {
         parts.join(" ")
     }
 
-    pub fn assemble(&mut self) -> Res<Vec<u8>> {
-        let mut prog = Vec::new();
+    pub fn assemble(&mut self, preprocess: bool) -> Res<EsiuxBin> {
+        let mut pp = PreProcessor::new(&self.source);
+        pp.handle()?;
 
-        for line in self.source.lines() {
-            let line = line.trim();
-
-            if line.is_empty() || line.ends_with(":") {
-                continue;
+        if preprocess {
+            for stmt in pp.intern_buf {
+                println!("{stmt}");
             }
-
-            let ins = if line.starts_with("b") {
-                let line_r = self.resolve_labels(line);
-                line_r.as_str().parse::<Instruction>()?
-            } else {
-                line.parse::<Instruction>()?
-            };
-
-            let le_bytes = ins.mask();
-            let le = le_bytes.to_le_bytes();
-            prog.extend_from_slice(&le);
+            process::exit(0);
         }
 
-        Ok(prog)
+        todo!()
     }
 }

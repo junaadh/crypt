@@ -28,12 +28,16 @@ impl<'a> Lexer<'a> {
     }
 
     pub fn advance(&mut self) -> Option<char> {
-        self.chars.next().map(|x| {
-            if x == '\n' {
+        self.chars.next().inspect(|x| {
+            if x == &'\n' {
                 self.line += 1;
             }
-            x
-        })
+        }) /*map(|x| {
+               if x == '\n' {
+                   self.line += 1;
+               }
+               x
+           })*/
     }
 
     pub fn peek(&self) -> Option<char> {

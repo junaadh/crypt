@@ -1,4 +1,4 @@
-use crate::assembly::{Token, DEFAULT_WHITESPACE};
+use crate::assembly::DEFAULT_WHITESPACE;
 
 use super::Symbol;
 use std::fmt;
@@ -80,11 +80,9 @@ impl<'a> Statements<'a> {
             } => {
                 let op_1 = resolve_field(op1, fields.as_slice());
                 let op_2 = resolve_field(op2, fields.as_slice());
-                let op_3 = if let Some(op3_val) = op3 {
-                    Some(resolve_field(op3_val, fields.as_slice()))
-                } else {
-                    None
-                };
+                let op_3 = op3
+                    .as_ref()
+                    .map(|op3_val| resolve_field(op3_val, fields.as_slice()));
                 // println!("{op_1:#?}\n{op_2:#?}\n{op_3:#?}");
                 Statements::DPI {
                     instruction: instruction.clone(),
